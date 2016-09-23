@@ -1,7 +1,12 @@
-<manifest
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.eclipse.paho.android.service">
 
     <application>
+        <receiver
+            android:name=".TaskerBroadcastReceiver"
+            android:enabled="true"
+            android:exported="true"></receiver>
     </application>
 
 </manifest>

@@ -687,6 +687,29 @@ class MqttConnection implements MqttCallbackExtended {
 		}
 	}
 
+	public void subscribe(String topicFilter, int qos, String invocationContext, String activityToken, IMqttMessageListener messageListener)
+	{
+		service.traceDebug(TAG, "subscribe({" + topicFilter + "}," + qos + ",{"
+				+ invocationContext + "}, {" + activityToken + "}");
+		final Bundle resultBundle = new Bundle();
+		resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION, MqttServiceConstants.SUBSCRIBE_ACTION);
+		resultBundle.putString(MqttServiceConstants.CALLBACK_ACTIVITY_TOKEN, activityToken);
+		resultBundle.putString(MqttServiceConstants.CALLBACK_INVOCATION_CONTEXT, invocationContext);
+		if((myClient != null) && (myClient.isConnected())){
+			IMqttActionListener listener = new MqttConnectionListener(resultBundle);
+			try {
+
+				myClient.subscribe(topicFilter, qos,messageListener);
+			} catch (Exception e){
+				handleException(resultBundle, e);
+			}
+		} else {
+			resultBundle.putString(MqttServiceConstants.CALLBACK_ERROR_MESSAGE, NOT_CONNECTED);
+			service.traceError("subscribe", NOT_CONNECTED);
+			service.callbackToActivity(clientHandle, Status.ERROR, resultBundle);
+		}
+	}
+
 	public void subscribe(String[] topicFilters, int[] qos, String invocationContext, String activityToken, IMqttMessageListener[] messageListeners) {
 		service.traceDebug(TAG, "subscribe({" + topicFilters + "}," + qos + ",{"
 				+ invocationContext + "}, {" + activityToken + "}");

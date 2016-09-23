@@ -22,7 +22,7 @@ import android.os.Binder;
  * </ul>
  * 
  */
-class MqttServiceBinder extends Binder {
+public class MqttServiceBinder extends Binder {
 
 	private MqttService mqttService;
 	private String activityToken;

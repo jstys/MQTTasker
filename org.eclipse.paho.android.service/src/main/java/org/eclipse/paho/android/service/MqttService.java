@@ -225,7 +225,7 @@ import android.util.Log;
  * </table >
  * </p>
  */
-public class MqttService extends Service implements MqttTraceHandler {
+public class MqttService extends Service implements MqttTraceHandler, ITaskerActionRunner, ITaskerConditionChecker {
 
 	// Identifier for Intents, log messages, etc..
 	static final String TAG = "MqttService";
@@ -235,6 +235,9 @@ public class MqttService extends Service implements MqttTraceHandler {
 	private String traceCallbackId;
 	// state of tracing
 	private boolean traceEnabled = false;
+
+    // Wrapper for tasker plugin functionality
+    private TaskerUtility taskerUtility;
 
 	// somewhere to persist received messages until we're sure
 	// that they've reached the application
@@ -256,8 +259,9 @@ public class MqttService extends Service implements MqttTraceHandler {
 	// mapping from client handle strings to actual client connections.
 	private Map<String/* clientHandle */, MqttConnection/* client */> connections = new ConcurrentHashMap<String, MqttConnection>();
 
-  public MqttService() {
-    super();
+  public MqttService()
+  {
+      super();
   }
 
   /**
@@ -509,6 +513,26 @@ public class MqttService extends Service implements MqttTraceHandler {
     client.subscribe(topic, qos, invocationContext, activityToken);
   }
 
+    /**
+     * Subscribe using a topic filter
+     *
+     * @param clientHandle
+     *            identifies the MqttConnection to use
+     * @param topicFilter
+     *            a possibly wildcarded topicfilter
+     * @param qos
+     *            requested quality of service for each topic
+     * @param invocationContext
+     *            arbitrary data to be passed back to the application
+     * @param activityToken
+     *            arbitrary identifier to be passed back to the Activity
+     * @param messageListener
+     */
+    public void subscribe(String clientHandle, String topicFilter, int qos, String invocationContext, String activityToken, IMqttMessageListener messageListener){
+        MqttConnection client = getConnection(clientHandle);
+        client.subscribe(topicFilter, qos, invocationContext, activityToken, messageListener);
+    }
+
   /**
    * Subscribe using topic filters
    *
@@ -623,6 +647,8 @@ public class MqttService extends Service implements MqttTraceHandler {
     // create somewhere to buffer received messages until
     // we know that they have been passed to the application
     messageStore = new DatabaseMessageStore(this, this);
+
+      taskerUtility = new TaskerUtility(this, this);
 	}
 
 
@@ -768,6 +794,11 @@ public class MqttService extends Service implements MqttTraceHandler {
 
   @SuppressWarnings("deprecation")
   private void registerBroadcastReceivers() {
+      IntentFilter taskerIntents = new IntentFilter();
+      taskerIntents.addAction(TaskerBroadcastReceiver.ACTION_INTENT);
+      taskerIntents.addAction(TaskerBroadcastReceiver.CONDITION_INTENT);
+      registerReceiver(taskerUtility.getBroadcastReceiver(), taskerIntents);
+
 		if (networkConnectionMonitor == null) {
 			networkConnectionMonitor = new NetworkConnectionIntentReceiver();
 			registerReceiver(networkConnectionMonitor, new IntentFilter(
@@ -801,11 +832,64 @@ public class MqttService extends Service implements MqttTraceHandler {
 		}
   }
 
-  /*
-   * Called in response to a change in network connection - after losing a
-   * connection to the server, this allows us to wait until we have a usable
-   * data connection again
-   */
+    @Override
+    public void runAction(Bundle data) {
+        String action = data.getString("action");
+
+        switch(action){
+            case "connect":
+                String serverURI = data.getString("serverURI", null);
+                boolean autoReconnect = data.getBoolean("autoReconnect", false);
+                boolean cleanSession = data.getBoolean("cleanSession", false);
+                String username = data.getString("username", null);
+                String password = data.getString("password", null);
+
+                // TODO: Add failure case
+                if (serverURI != null) {
+                    MqttConnectOptions options = new MqttConnectOptions();
+                    options.setServerURIs(new String[]{"test"});
+                    if (autoReconnect) {
+                        options.setAutomaticReconnect(true);
+                    }
+                    if (cleanSession) {
+                        options.setCleanSession(true);
+                    }
+                    if (username != null) {
+                        options.setUserName(username);
+                    }
+                    if (password != null) {
+                        options.setPassword(password.toCharArray());
+                    }
+
+                    try {
+                        connect("tasker_client", options, null, null);
+                    } catch (MqttException e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
+            case "disconnect":
+                disconnect("tasker_client", null, null);
+                break;
+            case "subscribe":
+                break;
+            case "unsubscribe":
+                break;
+            default:
+                break;
+        }
+    }
+
+    @Override
+    public void checkCondition(Bundle data) {
+
+    }
+
+    /*
+     * Called in response to a change in network connection - after losing a
+     * connection to the server, this allows us to wait until we have a usable
+     * data connection again
+     */
   private class NetworkConnectionIntentReceiver extends BroadcastReceiver {
 
 		@Override
