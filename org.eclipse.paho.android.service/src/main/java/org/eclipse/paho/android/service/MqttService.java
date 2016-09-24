@@ -875,14 +875,18 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
                 break;
             case "unsubscribe":
                 break;
+            case "stopService":
+                stopSelf();
+                break;
             default:
                 break;
         }
     }
 
     @Override
-    public void checkCondition(Bundle data) {
-
+    public void checkCondition(Context context, Bundle data) {
+        //TODO: implement condition checking (i.e. checking the value of a topic)
+        return;
     }
 
     /*

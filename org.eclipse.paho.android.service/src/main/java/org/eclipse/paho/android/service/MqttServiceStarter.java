@@ -8,7 +8,7 @@ import android.os.Bundle;
  * Created by jim.stys on 9/24/16.
  */
 
-public class MqttServiceManager implements ITaskerActionRunner {
+public class MqttServiceStarter implements ITaskerActionRunner {
     private static final String SERVICE_NAME = "org.eclipse.paho.android.service.MqttService";
 
     @Override
@@ -19,11 +19,6 @@ public class MqttServiceManager implements ITaskerActionRunner {
                 Intent serviceStartIntent = new Intent();
                 serviceStartIntent.setClassName(context, SERVICE_NAME);
                 context.startService(serviceStartIntent);
-                break;
-            case "stopService":
-                Intent stopServiceIntent = new Intent();
-                stopServiceIntent.setClassName(context, SERVICE_NAME);
-                context.stopService(stopServiceIntent);
                 break;
             default:
                 break;
