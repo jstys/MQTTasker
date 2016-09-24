@@ -17,6 +17,14 @@ public class TaskerBroadcastReceiver extends BroadcastReceiver {
     private ITaskerActionRunner actionRunner;
     private ITaskerConditionChecker conditionChecker;
 
+    // Default constructor allows instantiation directly from AndroidManifest (used here to
+    // start/stop the MqttService)
+    public TaskerBroadcastReceiver(){
+        MqttServiceManager serviceStarter = new MqttServiceManager();
+        actionRunner = (ITaskerActionRunner)serviceStarter;
+        conditionChecker = null;
+    }
+
     public TaskerBroadcastReceiver(ITaskerActionRunner runner, ITaskerConditionChecker checker) {
         this.actionRunner = runner;
         this.conditionChecker = checker;
@@ -26,19 +34,19 @@ public class TaskerBroadcastReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         final Bundle bundle = intent.getBundleExtra("com.twofortyfouram.locale.Intent.EXTRA_BUNDLE");
 
-        if(ACTION_INTENT.equals(intent.getAction()))
+        if(ACTION_INTENT.equals(intent.getAction()) && this.actionRunner != null)
         {
             // Tasker action triggered
-            this.actionRunner.runAction(bundle);
+            this.actionRunner.runAction(context, bundle);
         }
-        else if(CONDITION_INTENT.equals(intent.getAction()))
+        else if(CONDITION_INTENT.equals(intent.getAction()) && this.conditionChecker != null)
         {
             // Tasker condition check triggered
-            this.conditionChecker.checkCondition(bundle);
+            this.conditionChecker.checkCondition(context, bundle);
         }
         else
         {
-            // Received invalid intent
+            // TODO: Received invalid intent
         }
 
 

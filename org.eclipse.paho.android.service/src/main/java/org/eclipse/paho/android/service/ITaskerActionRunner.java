@@ -1,5 +1,6 @@
 package org.eclipse.paho.android.service;
 
+import android.content.Context;
 import android.os.Bundle;
 
 /**
@@ -7,5 +8,5 @@ import android.os.Bundle;
  */
 
 public interface ITaskerActionRunner {
-    public void runAction(Bundle data);
+    public void runAction(Context context, Bundle data);
 }

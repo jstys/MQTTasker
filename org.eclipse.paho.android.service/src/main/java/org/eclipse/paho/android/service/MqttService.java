@@ -833,7 +833,7 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
   }
 
     @Override
-    public void runAction(Bundle data) {
+    public void runAction(Context context, Bundle data) {
         String action = data.getString("action");
 
         switch(action){

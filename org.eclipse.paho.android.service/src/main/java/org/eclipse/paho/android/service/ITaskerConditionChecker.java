@@ -1,5 +1,6 @@
 package org.eclipse.paho.android.service;
 
+import android.content.Context;
 import android.os.Bundle;
 
 /**
@@ -7,5 +8,5 @@ import android.os.Bundle;
  */
 
 public interface ITaskerConditionChecker {
-    public void checkCondition(Bundle data);
+    public void checkCondition(Context context, Bundle data);
 }
