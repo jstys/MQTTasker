@@ -20,8 +20,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
+import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
+import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -834,20 +836,21 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
 
     @Override
     public void runAction(Context context, Bundle data) {
-        String action = data.getString("action");
+        String topicFilter;
+        String action = data.getString(TaskerMqttConstants.ACTION_EXTRA, null);
 
+        // TODO: Add failure cases
         switch(action){
-            case "connect":
-                String serverURI = data.getString("serverURI", null);
-                boolean autoReconnect = data.getBoolean("autoReconnect", false);
-                boolean cleanSession = data.getBoolean("cleanSession", false);
-                String username = data.getString("username", null);
-                String password = data.getString("password", null);
+            case TaskerMqttConstants.CONNECT_ACTION:
+                String serverURI = data.getString(TaskerMqttConstants.SERVER_URI_EXTRA, null);
+                boolean autoReconnect = data.getBoolean(TaskerMqttConstants.AUTOMATIC_RECONNECT_EXTRA, false);
+                boolean cleanSession = data.getBoolean(TaskerMqttConstants.CLEAN_SESSION_EXTRA, false);
+                String username = data.getString(TaskerMqttConstants.USERNAME_EXTRA, null);
+                String password = data.getString(TaskerMqttConstants.PASSWORD_EXTRA, null);
 
-                // TODO: Add failure case
                 if (serverURI != null) {
                     MqttConnectOptions options = new MqttConnectOptions();
-                    options.setServerURIs(new String[]{"test"});
+                    options.setServerURIs(new String[]{serverURI});
                     if (autoReconnect) {
                         options.setAutomaticReconnect(true);
                     }
@@ -862,20 +865,31 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
                     }
 
                     try {
-                        connect("tasker_client", options, null, null);
+                        connect(TaskerMqttConstants.TASKER_CLIENT_ID, options, null, null);
                     } catch (MqttException e) {
                         e.printStackTrace();
                     }
                 }
                 break;
-            case "disconnect":
-                disconnect("tasker_client", null, null);
+            case TaskerMqttConstants.DISCONNECT_ACTION:
+                disconnect(TaskerMqttConstants.TASKER_CLIENT_ID, null, null);
                 break;
-            case "subscribe":
+            case TaskerMqttConstants.SUBSCRIBE_ACTION:
+                topicFilter = data.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, null);
+                int qos = data.getInt(TaskerMqttConstants.QOS_EXTRA, 0);
+
+                if(topicFilter != null) {
+                    IMqttMessageListener messageListener = new MqttMessageListener(this, topicFilter);
+                    subscribe(TaskerMqttConstants.TASKER_CLIENT_ID, topicFilter, qos, null, null, messageListener);
+                }
                 break;
-            case "unsubscribe":
+            case TaskerMqttConstants.UNSUBSCRIBE_ACTION:
+                topicFilter = data.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, null);
+                if(topicFilter != null) {
+                    unsubscribe(TaskerMqttConstants.TASKER_CLIENT_ID, topicFilter, null, null);
+                }
                 break;
-            case "stopService":
+            case TaskerMqttConstants.STOP_SERVICE_ACTION:
                 stopSelf();
                 break;
             default:
@@ -885,8 +899,37 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
 
     @Override
     public void checkCondition(Context context, Bundle data) {
-        //TODO: implement condition checking (i.e. checking the value of a topic)
-        return;
+        String topic = data.getString(TaskerMqttConstants.TOPIC_EXTRA, null);
+        String topicFilter = data.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, null);
+        ParcelableMqttMessage message = data.getParcelable(TaskerMqttConstants.MESSAGE_EXTRA);
+
+        //TODO: Return the results back to tasker
+    }
+
+    /**
+     * General-purpose IMqttActionListener for the Client context
+     * <p>
+     * Simply handles the basic success/failure cases for operations which don't
+     * return results
+     *
+     */
+    private class MqttMessageListener implements IMqttMessageListener {
+        private String topicFilter;
+        private Context context;
+
+        public MqttMessageListener(Context context, String topicFilter)
+        {
+            this.topicFilter = topicFilter;
+        }
+
+        @Override
+        public void messageArrived(String topic, MqttMessage message) throws Exception {
+            Bundle data = new Bundle();
+            data.putString(TaskerMqttConstants.TOPIC_EXTRA, topic);
+            data.putString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, this.topicFilter);
+            data.putParcelable(TaskerMqttConstants.MESSAGE_EXTRA, new ParcelableMqttMessage(message));
+            taskerUtility.TriggerTaskerEvent(context, data);
+        }
     }
 
     /*

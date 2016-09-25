@@ -13,9 +13,9 @@ public class MqttServiceStarter implements ITaskerActionRunner {
 
     @Override
     public void runAction(Context context, Bundle data) {
-        String action = data.getString("action", null);
+        String action = data.getString(TaskerMqttConstants.ACTION_EXTRA, null);
         switch(action){
-            case "startService":
+            case TaskerMqttConstants.START_SERVICE_ACTION:
                 Intent serviceStartIntent = new Intent();
                 serviceStartIntent.setClassName(context, SERVICE_NAME);
                 context.startService(serviceStartIntent);

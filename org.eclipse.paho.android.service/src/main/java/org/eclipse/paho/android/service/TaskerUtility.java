@@ -9,7 +9,7 @@ import android.os.Bundle;
  */
 
 public class TaskerUtility {
-    private static final String EVENT_INTENT = "com.twofortyfouram.locale.Intent.REQUEST_QUERY";
+    private static final String EVENT_INTENT = "com.twofortyfouram.locale.Intent.ACTION_REQUEST_QUERY";
     private TaskerBroadcastReceiver broadcastReceiver;
 
     public TaskerUtility(ITaskerActionRunner runner, ITaskerConditionChecker checker)
