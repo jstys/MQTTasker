@@ -1,2 +1,2 @@
-include ':org.eclipse.paho.android.service', ':mqttsubscriberapp'
-project(':org.eclipse.paho.android.service').projectDir = new File('org.eclipse.paho.android.service')
+include ':org.eclipse.paho.android.service'
+include ':mqttsubscriberapp'
