@@ -2,6 +2,7 @@ package org.eclipse.paho.android.service;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 
 /**
@@ -17,7 +18,7 @@ public class TaskerUtility {
         broadcastReceiver = new TaskerBroadcastReceiver(runner, checker);
     }
 
-    public void TriggerTaskerEvent(Context context, Bundle data)
+    public void triggerTaskerEvent(Context context, Bundle data)
     {
         Intent eventIntent = new Intent(EVENT_INTENT);
         TaskerPlugin.Event.addPassThroughMessageID(eventIntent);
@@ -25,8 +26,16 @@ public class TaskerUtility {
         context.sendBroadcast(eventIntent);
     }
 
-    public TaskerBroadcastReceiver getBroadcastReceiver()
+    public void registerBroadcastReceiver(Context context)
     {
-        return broadcastReceiver;
+        IntentFilter taskerIntents = new IntentFilter();
+        taskerIntents.addAction(TaskerBroadcastReceiver.ACTION_INTENT);
+        taskerIntents.addAction(TaskerBroadcastReceiver.CONDITION_INTENT);
+        context.registerReceiver(broadcastReceiver, taskerIntents);
+    }
+
+    public void unregisterBroadcastReceiver(Context context)
+    {
+        context.unregisterReceiver(broadcastReceiver);
     }
 }

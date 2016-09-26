@@ -15,25 +15,19 @@
  */
 package org.eclipse.paho.android.service;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
-import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
-import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 import org.eclipse.paho.client.mqttv3.MqttSecurityException;
-import org.eclipse.paho.client.mqttv3.internal.DisconnectedMessageBuffer;
 
-import android.app.ActivityManager;
-import android.app.ActivityManager.RunningTaskInfo;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -47,7 +41,6 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 /**
  * <p>
@@ -796,10 +789,7 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
 
   @SuppressWarnings("deprecation")
   private void registerBroadcastReceivers() {
-      IntentFilter taskerIntents = new IntentFilter();
-      taskerIntents.addAction(TaskerBroadcastReceiver.ACTION_INTENT);
-      taskerIntents.addAction(TaskerBroadcastReceiver.CONDITION_INTENT);
-      registerReceiver(taskerUtility.getBroadcastReceiver(), taskerIntents);
+      taskerUtility.registerBroadcastReceiver(this);
 
 		if (networkConnectionMonitor == null) {
 			networkConnectionMonitor = new NetworkConnectionIntentReceiver();
@@ -822,6 +812,8 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
   }
 
   private void unregisterBroadcastReceivers(){
+      taskerUtility.unregisterBroadcastReceiver(this);
+
   	if(networkConnectionMonitor != null){
   		unregisterReceiver(networkConnectionMonitor);
   		networkConnectionMonitor = null;
@@ -842,6 +834,12 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
         // TODO: Add failure cases
         switch(action){
             case TaskerMqttConstants.CONNECT_ACTION:
+                /*
+                        TODO: Move this logic into a 'connection profile' that is only
+                        configurable through the app.  It is a security risk to include
+                        sensitive information in a tasker broadcast intent.
+                 */
+
                 String serverURI = data.getString(TaskerMqttConstants.SERVER_URI_EXTRA, null);
                 boolean autoReconnect = data.getBoolean(TaskerMqttConstants.AUTOMATIC_RECONNECT_EXTRA, false);
                 boolean cleanSession = data.getBoolean(TaskerMqttConstants.CLEAN_SESSION_EXTRA, false);
@@ -928,7 +926,7 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
             data.putString(TaskerMqttConstants.TOPIC_EXTRA, topic);
             data.putString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, this.topicFilter);
             data.putParcelable(TaskerMqttConstants.MESSAGE_EXTRA, new ParcelableMqttMessage(message));
-            taskerUtility.TriggerTaskerEvent(context, data);
+            taskerUtility.triggerTaskerEvent(context, data);
         }
     }
 
