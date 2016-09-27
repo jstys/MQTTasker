@@ -28,6 +28,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 import org.eclipse.paho.client.mqttv3.MqttSecurityException;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -37,10 +38,16 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
+import android.widget.Toast;
 
 /**
  * <p>
@@ -225,6 +232,8 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
 	// Identifier for Intents, log messages, etc..
 	static final String TAG = "MqttService";
 
+    private static int SERVICE_NOTIF_ID = 101;
+
 	// callback id for making trace callbacks to the Activity
 	// needs to be set by the activity as appropriate
 	private String traceCallbackId;
@@ -249,7 +258,8 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
   private volatile boolean backgroundDataEnabled = true;
 
   // a way to pass ourself back to the activity
-  private MqttServiceBinder mqttServiceBinder;
+  private MqttServiceHandler mqttServiceHandler;
+    private Messenger mqttServiceMessanger;
 
 	// mapping from client handle strings to actual client connections.
 	private Map<String/* clientHandle */, MqttConnection/* client */> connections = new ConcurrentHashMap<String, MqttConnection>();
@@ -637,7 +647,9 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
 
     // create a binder that will let the Activity UI send
     // commands to the Service
-    mqttServiceBinder = new MqttServiceBinder(this);
+    mqttServiceHandler = new MqttServiceHandler(this);
+      mqttServiceMessanger = new Messenger(mqttServiceHandler);
+
 
     // create somewhere to buffer received messages until
     // we know that they have been passed to the application
@@ -659,8 +671,8 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
 		}
 
     // clear down
-    if (mqttServiceBinder != null) {
-      mqttServiceBinder = null;
+    if (mqttServiceHandler != null) {
+      mqttServiceHandler = null;
     }
 
 		unregisterBroadcastReceivers();
@@ -681,8 +693,8 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
     // we were given when started
     String activityToken = intent
         .getStringExtra(MqttServiceConstants.CALLBACK_ACTIVITY_TOKEN);
-    mqttServiceBinder.setActivityToken(activityToken);
-    return mqttServiceBinder;
+    mqttServiceHandler.setActivityToken(activityToken);
+    return mqttServiceMessanger.getBinder();
   }
 
   /**
@@ -692,7 +704,21 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
   public int onStartCommand(final Intent intent, int flags, final int startId) {
     // run till explicitly stopped, restart when
     // process restarted
-	registerBroadcastReceivers();
+    Log.d(TAG, "MqttService received start command");
+
+    if(intent.getAction().equals(TaskerMqttConstants.STOP_SERVICE_ACTION))
+    {
+      stopForeground(true);
+    }
+    else if(intent.getAction().equals(TaskerMqttConstants.START_SERVICE_ACTION)) {
+      Notification notification = new NotificationCompat.Builder(this)
+              .setContentTitle("MQTT Subscriber Service")
+              .setTicker("MQTT Subscriber Service").build();
+      startForeground(SERVICE_NOTIF_ID,
+              notification);
+
+      registerBroadcastReceivers();
+    }
 
     return START_STICKY;
   }

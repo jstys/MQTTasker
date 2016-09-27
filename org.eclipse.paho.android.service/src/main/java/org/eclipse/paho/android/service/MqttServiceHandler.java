@@ -12,7 +12,13 @@
  */
 package org.eclipse.paho.android.service;
 
+import android.content.Context;
 import android.os.Binder;
+import android.os.Bundle;
+import android.os.Handler;
+
+import android.os.Message;
+import android.widget.Toast;
 
 /**
  * What the Service passes to the Activity on binding:-
@@ -20,14 +26,14 @@ import android.os.Binder;
  * <li>a reference to the Service
  * <li>the activityToken provided when the Service was started
  * </ul>
- * 
+ *
  */
-public class MqttServiceBinder extends Binder {
+public class MqttServiceHandler extends Handler {
 
 	private MqttService mqttService;
 	private String activityToken;
 
-	MqttServiceBinder(MqttService mqttService) {
+	public MqttServiceHandler(MqttService mqttService) {
 		this.mqttService = mqttService;
 	}
 
@@ -49,4 +55,11 @@ public class MqttServiceBinder extends Binder {
 		return activityToken;
 	}
 
+	@Override
+	public void handleMessage(Message msg) {
+		Bundle data = msg.getData();
+		String dataString = data.getString(TaskerMqttConstants.ACTION_EXTRA);
+		Toast.makeText(this.mqttService.getApplicationContext(),
+				dataString, Toast.LENGTH_SHORT).show();
+	}
 }
