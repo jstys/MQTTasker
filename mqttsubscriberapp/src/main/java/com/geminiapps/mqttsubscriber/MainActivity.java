@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
     @BindView(R.id.startbutton) Button startButton;
 
     private Messenger subscriberService;
+    private boolean serviceRegistered;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +31,7 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
 
         ButterKnife.bind(this);
 
+        serviceRegistered = false;
         startButton.setOnClickListener(this);
         stopButton.setOnClickListener(this);
 
@@ -38,8 +40,10 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
-        unbindService(this);
+        if(this.serviceRegistered)
+        {
+            unbindService(this);
+        }
     }
 
     @Override
@@ -68,10 +72,12 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
     @Override
     public void onServiceConnected(ComponentName name, IBinder binder) {
         this.subscriberService = new Messenger(binder);
+        this.serviceRegistered = true;
     }
 
     @Override
     public void onServiceDisconnected(ComponentName name) {
         this.subscriberService = null;
+        this.serviceRegistered = false;
     }
 }
