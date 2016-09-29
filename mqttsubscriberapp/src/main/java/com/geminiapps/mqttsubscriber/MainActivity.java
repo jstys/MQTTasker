@@ -1,15 +1,16 @@
 package com.geminiapps.mqttsubscriber;
 
+import android.app.FragmentManager;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
@@ -26,6 +27,7 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
     @BindView(R.id.testDisconnectButton) Button disconnectButton;
     @BindView(R.id.testSubscribeButton) Button subscribeButton;
     @BindView(R.id.testUnsubscribeButton) Button unsubscribeButton;
+    @BindView(R.id.floatingActionButton) FloatingActionButton addButton;
 
     private Messenger subscriberService;
     private boolean serviceRegistered;
@@ -44,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
         disconnectButton.setOnClickListener(this);
         subscribeButton.setOnClickListener(this);
         unsubscribeButton.setOnClickListener(this);
+        addButton.setOnClickListener(this);
     }
 
     @Override
@@ -51,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
         super.onDestroy();
         if(this.serviceRegistered)
         {
-            //unbindService(this);
+            unbindService(this);
         }
     }
 
@@ -109,6 +112,11 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
                     data = new Bundle();
                     data.putString(TaskerMqttConstants.ACTION_EXTRA, TaskerMqttConstants.UNSUBSCRIBE_ACTION);
                 }
+                break;
+            case R.id.floatingActionButton:
+                android.support.v4.app.FragmentManager fm = getSupportFragmentManager();
+                AddEditProfileFragment dialog = new AddEditProfileFragment();
+                dialog.show(fm, "add_edit_profile_fragment");
                 break;
             default:
                 break;
