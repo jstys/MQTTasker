@@ -58,8 +58,6 @@ public class MqttServiceHandler extends Handler {
 	@Override
 	public void handleMessage(Message msg) {
 		Bundle data = msg.getData();
-		String dataString = data.getString(TaskerMqttConstants.ACTION_EXTRA);
-		Toast.makeText(this.mqttService.getApplicationContext(),
-				dataString, Toast.LENGTH_SHORT).show();
+		this.mqttService.runAction(this.mqttService, data);
 	}
 }

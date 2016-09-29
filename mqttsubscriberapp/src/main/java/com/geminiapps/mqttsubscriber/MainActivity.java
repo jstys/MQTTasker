@@ -4,7 +4,9 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.Messenger;
+import android.os.RemoteException;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,6 +22,10 @@ import butterknife.ButterKnife;
 public class MainActivity extends AppCompatActivity implements Button.OnClickListener, ServiceConnection {
     @BindView(R.id.stopbutton)  Button stopButton;
     @BindView(R.id.startbutton) Button startButton;
+    @BindView(R.id.testConnectButton) Button connectButton;
+    @BindView(R.id.testDisconnectButton) Button disconnectButton;
+    @BindView(R.id.testSubscribeButton) Button subscribeButton;
+    @BindView(R.id.testUnsubscribeButton) Button unsubscribeButton;
 
     private Messenger subscriberService;
     private boolean serviceRegistered;
@@ -34,7 +40,10 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
         serviceRegistered = false;
         startButton.setOnClickListener(this);
         stopButton.setOnClickListener(this);
-
+        connectButton.setOnClickListener(this);
+        disconnectButton.setOnClickListener(this);
+        subscribeButton.setOnClickListener(this);
+        unsubscribeButton.setOnClickListener(this);
     }
 
     @Override
@@ -42,30 +51,78 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
         super.onDestroy();
         if(this.serviceRegistered)
         {
-            unbindService(this);
+            //unbindService(this);
         }
     }
 
     @Override
     public void onClick(View v) {
-        Log.d("MqttApp", "Button");
+        boolean sendMessage = false;
+        Bundle data = null;
         switch(v.getId()){
 
             case R.id.startbutton:
-                Log.d("MqttApp", "Start pressed");
                 Intent startIntent = new Intent(this, MqttService.class);
                 startIntent.setAction(TaskerMqttConstants.START_SERVICE_ACTION);
                 startService(startIntent);
                 bindService(startIntent, this, 0);
                 break;
             case R.id.stopbutton:
-                Log.d("MqttApp", "Stop pressed");
                 Intent stopIntent = new Intent(this, MqttService.class);
                 stopIntent.setAction(TaskerMqttConstants.STOP_SERVICE_ACTION);
                 stopService(stopIntent);
                 break;
+            case R.id.testConnectButton:
+                if(this.serviceRegistered)
+                {
+                    Message serviceMessage = new Message();
+                    data = new Bundle();
+                    data.putString(TaskerMqttConstants.ACTION_EXTRA, TaskerMqttConstants.CONNECT_ACTION);
+                    serviceMessage.setData(data);
+                    try {
+                        this.subscriberService.send(serviceMessage);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
+            case R.id.testDisconnectButton:
+                if(this.serviceRegistered)
+                {
+                    sendMessage = true;
+                    data = new Bundle();
+                    data.putString(TaskerMqttConstants.ACTION_EXTRA, TaskerMqttConstants.DISCONNECT_ACTION);
+                }
+                break;
+            case R.id.testSubscribeButton:
+                if(this.serviceRegistered)
+                {
+                    sendMessage = true;
+                    data = new Bundle();
+                    data.putString(TaskerMqttConstants.ACTION_EXTRA, TaskerMqttConstants.SUBSCRIBE_ACTION);
+                }
+                break;
+            case R.id.testUnsubscribeButton:
+                if(this.serviceRegistered)
+                {
+                    sendMessage = true;
+                    data = new Bundle();
+                    data.putString(TaskerMqttConstants.ACTION_EXTRA, TaskerMqttConstants.UNSUBSCRIBE_ACTION);
+                }
+                break;
             default:
                 break;
+        }
+
+        if(sendMessage && data != null)
+        {
+            Message serviceMessage = new Message();
+            serviceMessage.setData(data);
+            try {
+                this.subscriberService.send(serviceMessage);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 

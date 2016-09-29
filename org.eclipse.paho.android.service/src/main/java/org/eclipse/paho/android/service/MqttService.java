@@ -15,6 +15,8 @@
  */
 package org.eclipse.paho.android.service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -860,32 +862,24 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
         // TODO: Add failure cases
         switch(action){
             case TaskerMqttConstants.CONNECT_ACTION:
-                /*
-                        TODO: Move this logic into a 'connection profile' that is only
-                        configurable through the app.  It is a security risk to include
-                        sensitive information in a tasker broadcast intent.
-                 */
+                String profileName = data.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA, null);
+                List<MqttConnectionProfile> profileList = MqttConnectionProfile.find(MqttConnectionProfile.class, "clientID = ?", profileName);
 
-                String serverURI = data.getString(TaskerMqttConstants.SERVER_URI_EXTRA, null);
-                boolean autoReconnect = data.getBoolean(TaskerMqttConstants.AUTOMATIC_RECONNECT_EXTRA, false);
-                boolean cleanSession = data.getBoolean(TaskerMqttConstants.CLEAN_SESSION_EXTRA, false);
-                String username = data.getString(TaskerMqttConstants.USERNAME_EXTRA, null);
-                String password = data.getString(TaskerMqttConstants.PASSWORD_EXTRA, null);
-
-                if (serverURI != null) {
+                if (profileList.size() == 1) {
                     MqttConnectOptions options = new MqttConnectOptions();
-                    options.setServerURIs(new String[]{serverURI});
-                    if (autoReconnect) {
+                    MqttConnectionProfile profile = profileList.get(0);
+                    options.setServerURIs(new String[]{profile.serverURI});
+                    if (profile.autoReconnect) {
                         options.setAutomaticReconnect(true);
                     }
-                    if (cleanSession) {
+                    if (profile.cleanSession) {
                         options.setCleanSession(true);
                     }
-                    if (username != null) {
-                        options.setUserName(username);
+                    if (profile.username != null) {
+                        options.setUserName(profile.username);
                     }
-                    if (password != null) {
-                        options.setPassword(password.toCharArray());
+                    if (profile.password != null) {
+                        options.setPassword(profile.password.toCharArray());
                     }
 
                     try {

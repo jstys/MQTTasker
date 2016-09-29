@@ -15,11 +15,7 @@ public class TaskerMqttConstants {
 
     // Other bundle data extras
     public static final String ACTION_EXTRA = "action";
-    public static final String SERVER_URI_EXTRA = "serverURI";
-    public static final String AUTOMATIC_RECONNECT_EXTRA = "autoReconnect";
-    public static final String CLEAN_SESSION_EXTRA = "cleanSession";
-    public static final String USERNAME_EXTRA = "username";
-    public static final String PASSWORD_EXTRA = "password";
+    public static final String PROFILE_NAME_EXTRA = "profileName";
     public static final String TOPIC_EXTRA = "topic";
     public static final String QOS_EXTRA = "qos";
     public static final String TOPIC_FILTER_EXTRA = "topicFilter";

@@ -37,6 +37,7 @@ configurations {
 dependencies {
     compile "org.eclipse.paho:org.eclipse.paho.client.mqttv3:${rootProject.ext.clientVersion}"
     compile "com.android.support:support-v4:${rootProject.ext.supportLibVersion}"
+    compile 'com.github.satyan:sugar:1.4'
     compile fileTree(include: ['*.jar'], dir: 'libs')
 }
 
