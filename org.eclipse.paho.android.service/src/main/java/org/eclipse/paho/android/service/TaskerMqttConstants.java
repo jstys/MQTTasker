@@ -8,6 +8,7 @@ public class TaskerMqttConstants {
     // Actions
     public static final String START_SERVICE_ACTION = "startService";
     public static final String STOP_SERVICE_ACTION = "stopService";
+    public static final String QUERY_SERVICE_ACTION = "queryService";
     public static final String CONNECT_ACTION = "connect";
     public static final String DISCONNECT_ACTION = "disconnect";
     public static final String SUBSCRIBE_ACTION = "subscribe";

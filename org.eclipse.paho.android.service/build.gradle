@@ -39,6 +39,7 @@ dependencies {
     compile "com.android.support:support-v4:${rootProject.ext.supportLibVersion}"
     compile 'com.github.satyan:sugar:1.4'
     compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support:appcompat-v7:24.2.1'
 }
 
 android.libraryVariants.all { variant ->

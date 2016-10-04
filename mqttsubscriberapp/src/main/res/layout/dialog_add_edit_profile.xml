@@ -1,79 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent">
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <variable name="profileModel" type="com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel"></variable>
+        <variable name="viewModel" type="com.geminiapps.mqttsubscriber.viewmodels.AddEditProfileViewModel"></variable>
+    </data>
+    <RelativeLayout
+        android:layout_width="match_parent" android:layout_height="match_parent">
 
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:inputType="textPersonName"
-        android:ems="10"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:id="@+id/profileNameTextview"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:hint="Profile Name" />
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="textPersonName"
+            android:ems="10"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:id="@+id/profile_name_edittext"
+            android:text="@={profileModel.profileName}"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:hint="Profile Name"
+            android:padding="?android:attr/dialogPreferredPadding" />
 
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:inputType="textPersonName"
-        android:ems="10"
-        android:id="@+id/brokerUriTextview"
-        android:layout_below="@+id/profileNameTextview"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:hint="Mqtt Broker URI" />
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="textUri"
+            android:ems="10"
+            android:id="@+id/broker_uri_edittext"
+            android:text="@={profileModel.brokerUri}"
+            android:layout_below="@+id/profile_name_edittext"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:hint="Mqtt Broker URI"
+            android:padding="?android:attr/dialogPreferredPadding" />
 
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:inputType="textPersonName"
-        android:ems="10"
-        android:id="@+id/usernameTextview"
-        android:hint="Username"
-        android:layout_below="@+id/brokerUriTextview"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="textPersonName"
+            android:ems="10"
+            android:id="@+id/username_edittext"
+            android:text="@={profileModel.username}"
+            android:hint="Username"
+            android:layout_below="@+id/broker_uri_edittext"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:padding="?android:attr/dialogPreferredPadding" />
 
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:inputType="textPassword"
-        android:ems="10"
-        android:id="@+id/passwordTextview"
-        android:hint="Password"
-        android:layout_below="@+id/usernameTextview"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:ems="10"
+            android:id="@+id/password_edittext"
+            android:text="@={profileModel.password}"
+            android:hint="Password"
+            android:layout_below="@+id/username_edittext"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:padding="?android:attr/dialogPreferredPadding" />
 
-    <CheckBox
-        android:text="Clean Session?"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/passwordTextview"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:id="@+id/cleanSessionCheckbox"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        <CheckBox
+            android:text="Clean Session?"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/password_edittext"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:id="@+id/clean_checkbox"
+            android:checked="@={profileModel.cleanSession}"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true" />
 
-    <CheckBox
-        android:text="Automatic Reconnect?"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/cleanSessionCheckbox"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:id="@+id/autoReconnectCheckbox"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        <CheckBox
+            android:text="Automatic Reconnect?"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/clean_checkbox"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:id="@+id/auto_reconnect_checkbox"
+            android:checked="@{profileModel.autoReconnect}"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true" />
 
-</RelativeLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true">
+
+            <Button
+                android:text="Save"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/save_profile_button"
+                android:onClick="@{()->viewModel.saveConnectionProfile(profileModel)}"
+                android:layout_weight="1"
+                style="@style/Widget.AppCompat.Button.Borderless.Colored" />
+
+            <Button
+                android:text="Cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/cancel_profile_button"
+                android:onClick="@{()->viewModel.cancelConnectionProfile()}"
+                android:layout_weight="1"
+                style="@style/Widget.AppCompat.Button.Borderless.Colored" />
+        </LinearLayout>
+
+    </RelativeLayout>
+</layout>

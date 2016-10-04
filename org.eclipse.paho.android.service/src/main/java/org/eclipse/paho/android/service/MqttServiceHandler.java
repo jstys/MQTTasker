@@ -30,10 +30,10 @@ import android.widget.Toast;
  */
 public class MqttServiceHandler extends Handler {
 
-	private MqttService mqttService;
+	private TaskerMqttService mqttService;
 	private String activityToken;
 
-	public MqttServiceHandler(MqttService mqttService) {
+	public MqttServiceHandler(TaskerMqttService mqttService) {
 		this.mqttService = mqttService;
 	}
 

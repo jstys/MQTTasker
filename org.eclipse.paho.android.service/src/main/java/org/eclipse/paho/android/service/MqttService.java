@@ -15,7 +15,6 @@
  */
 package org.eclipse.paho.android.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,8 +28,10 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 import org.eclipse.paho.client.mqttv3.MqttSecurityException;
+import org.eclipse.paho.client.mqttv3.internal.DisconnectedMessageBuffer;
 
-import android.app.Notification;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningTaskInfo;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -40,16 +41,11 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
-import android.os.Messenger;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.widget.Toast;
 
 /**
  * <p>
@@ -229,21 +225,16 @@ import android.widget.Toast;
  * </table >
  * </p>
  */
-public class MqttService extends Service implements MqttTraceHandler, ITaskerActionRunner, ITaskerConditionChecker {
+public class MqttService extends Service implements MqttTraceHandler {
 
 	// Identifier for Intents, log messages, etc..
 	static final String TAG = "MqttService";
-
-    private static int SERVICE_NOTIF_ID = 101;
 
 	// callback id for making trace callbacks to the Activity
 	// needs to be set by the activity as appropriate
 	private String traceCallbackId;
 	// state of tracing
 	private boolean traceEnabled = false;
-
-    // Wrapper for tasker plugin functionality
-    private TaskerUtility taskerUtility;
 
 	// somewhere to persist received messages until we're sure
 	// that they've reached the application
@@ -261,14 +252,12 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
 
   // a way to pass ourself back to the activity
   private MqttServiceHandler mqttServiceHandler;
-    private Messenger mqttServiceMessanger;
 
 	// mapping from client handle strings to actual client connections.
-	private Map<String/* clientHandle */, MqttConnection/* client */> connections = new ConcurrentHashMap<String, MqttConnection>();
+	protected Map<String/* clientHandle */, MqttConnection/* client */> connections = new ConcurrentHashMap<String, MqttConnection>();
 
-  public MqttService()
-  {
-      super();
+  public MqttService() {
+    super();
   }
 
   /**
@@ -285,7 +274,7 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
   void callbackToActivity(String clientHandle, Status status,
       Bundle dataBundle) {
     // Don't call traceDebug, as it will try to callbackToActivity leading
-    // to recursion.
+    // to recursicallbackToActivityon.
     Intent callbackIntent = new Intent(
         MqttServiceConstants.CALLBACK_TO_ACTIVITY);
     if (clientHandle != null) {
@@ -520,26 +509,6 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
     client.subscribe(topic, qos, invocationContext, activityToken);
   }
 
-    /**
-     * Subscribe using a topic filter
-     *
-     * @param clientHandle
-     *            identifies the MqttConnection to use
-     * @param topicFilter
-     *            a possibly wildcarded topicfilter
-     * @param qos
-     *            requested quality of service for each topic
-     * @param invocationContext
-     *            arbitrary data to be passed back to the application
-     * @param activityToken
-     *            arbitrary identifier to be passed back to the Activity
-     * @param messageListener
-     */
-    public void subscribe(String clientHandle, String topicFilter, int qos, String invocationContext, String activityToken, IMqttMessageListener messageListener){
-        MqttConnection client = getConnection(clientHandle);
-        client.subscribe(topicFilter, qos, invocationContext, activityToken, messageListener);
-    }
-
   /**
    * Subscribe using topic filters
    *
@@ -614,7 +583,7 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
    * @param clientHandle identifies the MqttConnection
    * @return the MqttConnection identified by this handle
    */
-  private MqttConnection getConnection(String clientHandle) {
+  protected MqttConnection getConnection(String clientHandle) {
     MqttConnection client = connections.get(clientHandle);
     if (client == null) {
       throw new IllegalArgumentException("Invalid ClientHandle");
@@ -649,15 +618,11 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
 
     // create a binder that will let the Activity UI send
     // commands to the Service
-    mqttServiceHandler = new MqttServiceHandler(this);
-      mqttServiceMessanger = new Messenger(mqttServiceHandler);
-
+    MqttServiceHandler mqttServiceHandler = null;
 
     // create somewhere to buffer received messages until
     // we know that they have been passed to the application
     messageStore = new DatabaseMessageStore(this, this);
-
-      taskerUtility = new TaskerUtility(this, this);
 	}
 
 
@@ -696,7 +661,7 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
     String activityToken = intent
         .getStringExtra(MqttServiceConstants.CALLBACK_ACTIVITY_TOKEN);
     mqttServiceHandler.setActivityToken(activityToken);
-    return mqttServiceMessanger.getBinder();
+    return null;
   }
 
   /**
@@ -706,21 +671,7 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
   public int onStartCommand(final Intent intent, int flags, final int startId) {
     // run till explicitly stopped, restart when
     // process restarted
-    Log.d(TAG, "MqttService received start command");
-
-    if(intent.getAction().equals(TaskerMqttConstants.STOP_SERVICE_ACTION))
-    {
-      stopForeground(true);
-    }
-    else if(intent.getAction().equals(TaskerMqttConstants.START_SERVICE_ACTION)) {
-      Notification notification = new NotificationCompat.Builder(this)
-              .setContentTitle("MQTT Subscriber Service")
-              .setTicker("MQTT Subscriber Service").build();
-      startForeground(SERVICE_NOTIF_ID,
-              notification);
-
-      registerBroadcastReceivers();
-    }
+	registerBroadcastReceivers();
 
     return START_STICKY;
   }
@@ -816,9 +767,7 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
   }
 
   @SuppressWarnings("deprecation")
-  private void registerBroadcastReceivers() {
-      taskerUtility.registerBroadcastReceiver(this);
-
+  protected void registerBroadcastReceivers() {
 		if (networkConnectionMonitor == null) {
 			networkConnectionMonitor = new NetworkConnectionIntentReceiver();
 			registerReceiver(networkConnectionMonitor, new IntentFilter(
@@ -839,9 +788,7 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
 		}
   }
 
-  private void unregisterBroadcastReceivers(){
-      taskerUtility.unregisterBroadcastReceiver(this);
-
+  protected void unregisterBroadcastReceivers(){
   	if(networkConnectionMonitor != null){
   		unregisterReceiver(networkConnectionMonitor);
   		networkConnectionMonitor = null;
@@ -854,107 +801,11 @@ public class MqttService extends Service implements MqttTraceHandler, ITaskerAct
 		}
   }
 
-    @Override
-    public void runAction(Context context, Bundle data) {
-        String topicFilter;
-        String action = data.getString(TaskerMqttConstants.ACTION_EXTRA, null);
-
-        // TODO: Add failure cases
-        switch(action){
-            case TaskerMqttConstants.CONNECT_ACTION:
-                String profileName = data.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA, null);
-                List<MqttConnectionProfile> profileList = MqttConnectionProfile.find(MqttConnectionProfile.class, "clientID = ?", profileName);
-
-                if (profileList.size() == 1) {
-                    MqttConnectOptions options = new MqttConnectOptions();
-                    MqttConnectionProfile profile = profileList.get(0);
-                    options.setServerURIs(new String[]{profile.serverURI});
-                    if (profile.autoReconnect) {
-                        options.setAutomaticReconnect(true);
-                    }
-                    if (profile.cleanSession) {
-                        options.setCleanSession(true);
-                    }
-                    if (profile.username != null) {
-                        options.setUserName(profile.username);
-                    }
-                    if (profile.password != null) {
-                        options.setPassword(profile.password.toCharArray());
-                    }
-
-                    try {
-                        connect(TaskerMqttConstants.TASKER_CLIENT_ID, options, null, null);
-                    } catch (MqttException e) {
-                        e.printStackTrace();
-                    }
-                }
-                break;
-            case TaskerMqttConstants.DISCONNECT_ACTION:
-                disconnect(TaskerMqttConstants.TASKER_CLIENT_ID, null, null);
-                break;
-            case TaskerMqttConstants.SUBSCRIBE_ACTION:
-                topicFilter = data.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, null);
-                int qos = data.getInt(TaskerMqttConstants.QOS_EXTRA, 0);
-
-                if(topicFilter != null) {
-                    IMqttMessageListener messageListener = new MqttMessageListener(this, topicFilter);
-                    subscribe(TaskerMqttConstants.TASKER_CLIENT_ID, topicFilter, qos, null, null, messageListener);
-                }
-                break;
-            case TaskerMqttConstants.UNSUBSCRIBE_ACTION:
-                topicFilter = data.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, null);
-                if(topicFilter != null) {
-                    unsubscribe(TaskerMqttConstants.TASKER_CLIENT_ID, topicFilter, null, null);
-                }
-                break;
-            case TaskerMqttConstants.STOP_SERVICE_ACTION:
-                stopSelf();
-                break;
-            default:
-                break;
-        }
-    }
-
-    @Override
-    public void checkCondition(Context context, Bundle data) {
-        String topic = data.getString(TaskerMqttConstants.TOPIC_EXTRA, null);
-        String topicFilter = data.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, null);
-        ParcelableMqttMessage message = data.getParcelable(TaskerMqttConstants.MESSAGE_EXTRA);
-
-        //TODO: Return the results back to tasker
-    }
-
-    /**
-     * General-purpose IMqttActionListener for the Client context
-     * <p>
-     * Simply handles the basic success/failure cases for operations which don't
-     * return results
-     *
-     */
-    private class MqttMessageListener implements IMqttMessageListener {
-        private String topicFilter;
-        private Context context;
-
-        public MqttMessageListener(Context context, String topicFilter)
-        {
-            this.topicFilter = topicFilter;
-        }
-
-        @Override
-        public void messageArrived(String topic, MqttMessage message) throws Exception {
-            Bundle data = new Bundle();
-            data.putString(TaskerMqttConstants.TOPIC_EXTRA, topic);
-            data.putString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, this.topicFilter);
-            data.putParcelable(TaskerMqttConstants.MESSAGE_EXTRA, new ParcelableMqttMessage(message));
-            taskerUtility.triggerTaskerEvent(context, data);
-        }
-    }
-
-    /*
-     * Called in response to a change in network connection - after losing a
-     * connection to the server, this allows us to wait until we have a usable
-     * data connection again
-     */
+  /*
+   * Called in response to a change in network connection - after losing a
+   * connection to the server, this allows us to wait until we have a usable
+   * data connection again
+   */
   private class NetworkConnectionIntentReceiver extends BroadcastReceiver {
 
 		@Override

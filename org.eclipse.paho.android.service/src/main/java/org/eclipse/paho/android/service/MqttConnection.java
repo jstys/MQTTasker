@@ -173,6 +173,23 @@ class MqttConnection implements MqttCallbackExtended {
 		wakeLockTag = buff.toString();
 	}
 
+	MqttConnection(MqttService service, String brokerUri, String clientId)
+	{
+		this.serverURI = brokerUri;
+		this.service = service;
+		this.clientHandle = clientId;
+		this.clientId = clientId;
+		this.persistence = null;
+
+		StringBuffer buff = new StringBuffer(this.getClass().getCanonicalName());
+		buff.append(" ");
+		buff.append(clientId);
+		buff.append(" ");
+		buff.append("on host ");
+		buff.append(serverURI);
+		wakeLockTag = buff.toString();
+	}
+
 	// The major API implementation follows
 	/**
 	 * Connect to the server specified when we were instantiated
