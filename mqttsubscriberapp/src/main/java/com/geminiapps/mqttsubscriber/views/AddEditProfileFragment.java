@@ -1,22 +1,17 @@
 package com.geminiapps.mqttsubscriber.views;
 
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.databinding.DataBindingUtil;
-import android.databinding.ObservableArrayList;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 
+import com.geminiapps.mqttsubscriber.R;
 import com.geminiapps.mqttsubscriber.databinding.DialogAddEditProfileBinding;
 import com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel;
-import com.geminiapps.mqttsubscriber.R;
 import com.geminiapps.mqttsubscriber.viewmodels.AddEditProfileViewModel;
 
 /**
@@ -25,22 +20,20 @@ import com.geminiapps.mqttsubscriber.viewmodels.AddEditProfileViewModel;
 
 public class AddEditProfileFragment extends DialogFragment {
 
-    private DialogAddEditProfileBinding binding;
-    private ObservableArrayList<MqttConnectionProfileModel> profileList;
+    public IConnectionProfileAddedListener profileAddedListener;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         // Get bundled data to determine if we're adding or editing
         Bundle args = getArguments();
-        this.profileList = (ObservableArrayList)args.getParcelableArrayList("profileList");
-        MqttConnectionProfileModel profile = args.getParcelable("profile");
+        MqttConnectionProfileModel profile = (args != null) ? (MqttConnectionProfileModel)args.getParcelable("profile") : null;
 
         Context context = getActivity();
-        binding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.dialog_add_edit_profile, null, false);
+        DialogAddEditProfileBinding binding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.dialog_add_edit_profile, null, false);
 
         // Create the view model
-        AddEditProfileViewModel vm = new AddEditProfileViewModel(this.getDialog(), this.profileList);
+        AddEditProfileViewModel vm = new AddEditProfileViewModel(this.getDialog(), this.profileAddedListener);
         binding.setViewModel(vm);
 
         if (profile != null) {
@@ -52,5 +45,17 @@ public class AddEditProfileFragment extends DialogFragment {
         }
 
         return binding.getRoot();
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        MainActivity activity = (MainActivity)context;
+        this.profileAddedListener = activity.profileAddedListener;
+    }
+
+    public interface IConnectionProfileAddedListener{
+        public void onProfileAdded(MqttConnectionProfileModel model);
     }
 }

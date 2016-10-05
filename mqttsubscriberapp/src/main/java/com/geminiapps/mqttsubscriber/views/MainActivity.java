@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.geminiapps.mqttsubscriber.R;
 import com.geminiapps.mqttsubscriber.databinding.ActivityMainBinding;
+import com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel;
 import com.geminiapps.mqttsubscriber.viewmodels.MainViewModel;
 
 import org.eclipse.paho.android.service.TaskerMqttConstants;
@@ -14,11 +15,15 @@ import org.eclipse.paho.android.service.TaskerMqttService;
 
 public class MainActivity extends AppCompatActivity {
 
+    public AddEditProfileFragment.IConnectionProfileAddedListener profileAddedListener;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ActivityMainBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
-        binding.setViewModel(new MainViewModel(this));
+        MainViewModel vm = new MainViewModel(this);
+        profileAddedListener = vm;
+        binding.setViewModel(vm);
 
         //TODO: implement a button for start/stop intent
         Intent startIntent = new Intent(this, TaskerMqttService.class);

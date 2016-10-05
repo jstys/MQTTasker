@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.databinding.ObservableArrayList;
 
 import com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel;
+import com.geminiapps.mqttsubscriber.views.AddEditProfileFragment;
 
 /**
  * Created by jim.stys on 10/2/16.
@@ -11,22 +12,19 @@ import com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel;
 
 public class AddEditProfileViewModel {
     private Dialog dialog;
-    private ObservableArrayList<MqttConnectionProfileModel> profileList;
+    private AddEditProfileFragment.IConnectionProfileAddedListener profileAddedListener;
 
-    public AddEditProfileViewModel(Dialog dialog, ObservableArrayList<MqttConnectionProfileModel> profileList)
+    public AddEditProfileViewModel(Dialog dialog, AddEditProfileFragment.IConnectionProfileAddedListener profileAddedListener)
     {
         this.dialog = dialog;
-        this.profileList = profileList;
+        this.profileAddedListener = profileAddedListener;
     }
 
     public void saveConnectionProfile(MqttConnectionProfileModel model) {
         if (model != null && !model.getProfileName().isEmpty() && !model.getBrokerUri().isEmpty()) {
-            long profileId = model.save();
-
-            if (profileId >= 0) {
-                this.profileList.add(model);
-                this.dialog.dismiss();
-            }
+            model.save();
+            this.profileAddedListener.onProfileAdded(model);
+            this.dialog.dismiss();
         }
     }
 

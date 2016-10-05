@@ -136,6 +136,16 @@ public class TaskerMqttService extends MqttService implements ITaskerActionRunne
                 stopForeground(true);
                 stopSelf();
                 break;
+            case TaskerMqttConstants.QUERY_SERVICE_RUNNING_ACTION:
+                if(this.serviceStarted) {
+                    this.callbackToActivity(null, Status.OK, null);
+                }
+                else{
+                    Bundle resultBundle = new Bundle();
+                    resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION, TaskerMqttConstants.QUERY_SERVICE_RUNNING_ACTION);
+                    this.callbackToActivity(null, Status.ERROR, resultBundle);
+                }
+                break;
             default:
                 break;
         }
