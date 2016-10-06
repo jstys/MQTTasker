@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.geminiapps.mqttsubscriber.R;
 import com.geminiapps.mqttsubscriber.adapters.ConnectionProfileListAdapter;
 import com.geminiapps.mqttsubscriber.broadcast.MqttServiceListener;
 import com.geminiapps.mqttsubscriber.broadcast.MqttServiceReceiver;
@@ -28,6 +29,7 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
     private Context viewContext;
     private MqttServiceReceiver receiver;
     private MqttServiceSender sender;
+    private boolean serviceRunning;
     public ObservableArrayList<MqttConnectionProfileModel> connectionProfiles;
     public Set<String> connectionProfileNames;
 
@@ -44,6 +46,7 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
         this.receiver = new MqttServiceReceiver(this, this.viewContext);
         this.sender = new MqttServiceSender(this.viewContext);
 
+        this.serviceRunning = false;
         this.sender.checkService();
     }
 
@@ -93,11 +96,33 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
 
     @Override
     public void onQueryServiceRunningResponse(boolean running) {
-        if(running){
-            Toast.makeText(this.viewContext, "Service is running", Toast.LENGTH_SHORT).show();
-        }
-        else{
-            Toast.makeText(this.viewContext, "Service not running yet", Toast.LENGTH_SHORT).show();
+        this.serviceRunning = running;
+    }
+
+    @Override
+    protected void onStartServiceResponse(boolean success) {
+        Toast.makeText(this.viewContext, "Service started", Toast.LENGTH_SHORT).show();
+        this.serviceRunning = true;
+    }
+
+    @Override
+    protected void onStopServiceResponse(boolean success) {
+        Toast.makeText(this.viewContext, "Service stopped", Toast.LENGTH_SHORT).show();
+        this.serviceRunning = false;
+    }
+
+    public boolean onMenuClick(int itemId){
+        switch(itemId){
+            case R.id.service_power_menuitem:
+                if(this.serviceRunning){
+                    this.sender.stopMqttService();
+                }
+                else{
+                    this.sender.startMqttService();
+                }
+                return true;
+            default:
+                return true;
         }
     }
 }

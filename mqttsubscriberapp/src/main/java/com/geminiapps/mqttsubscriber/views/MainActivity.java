@@ -4,6 +4,9 @@ import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 import com.geminiapps.mqttsubscriber.R;
 import com.geminiapps.mqttsubscriber.databinding.ActivityMainBinding;
@@ -26,11 +29,6 @@ public class MainActivity extends AppCompatActivity {
         vm = new MainViewModel(this);
         profileAddedListener = vm;
         binding.setViewModel(vm);
-
-        //TODO: implement a button for start/stop intent
-        Intent startIntent = new Intent(this, TaskerMqttService.class);
-        startIntent.setAction(TaskerMqttConstants.START_SERVICE_ACTION);
-        startService(startIntent);
     }
 
     @Override
@@ -38,5 +36,17 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
 
         vm.onDestroy();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return this.vm.onMenuClick(item.getItemId());
     }
 }

@@ -79,17 +79,26 @@ public class TaskerMqttService extends MqttService implements ITaskerActionRunne
 
         switch(action){
             case TaskerMqttConstants.START_SERVICE_ACTION:
-                Log.d(TAG, "Starting the TaskerMqttService");
+                Bundle resultBundle = new Bundle();
+                resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION, TaskerMqttConstants.START_SERVICE_ACTION);
 
-                // Build required notification for foreground service
-                Notification notification = new NotificationCompat.Builder(this)
-                        .setContentTitle("MQTT Subscriber Service")
-                        .setTicker("MQTT Subscriber Service").build();
-                startForeground(SERVICE_NOTIF_ID,
-                        notification);
+                if(!this.serviceStarted) {
+                    Log.d(TAG, "Starting the TaskerMqttService");
 
-                registerBroadcastReceivers();
-                this.serviceStarted = true;
+                    // Build required notification for foreground service
+                    Notification notification = new NotificationCompat.Builder(this)
+                            .setContentTitle("MQTT Subscriber Service")
+                            .setTicker("MQTT Subscriber Service").build();
+                    startForeground(SERVICE_NOTIF_ID,
+                            notification);
+
+                    registerBroadcastReceivers();
+                    this.serviceStarted = true;
+                    this.callbackToActivity(null, Status.OK, resultBundle);
+                }
+                else{
+                    this.callbackToActivity(null, Status.ERROR, resultBundle);
+                }
                 break;
 
             default:
@@ -109,6 +118,7 @@ public class TaskerMqttService extends MqttService implements ITaskerActionRunne
     @Override
     public void runAction(Context context, Bundle data) {
         String topicFilter;
+        Bundle resultBundle = null;
         String action = data.getString(TaskerMqttConstants.ACTION_EXTRA, null);
 
         // TODO: Add failure cases
@@ -161,11 +171,20 @@ public class TaskerMqttService extends MqttService implements ITaskerActionRunne
                 break;
             case TaskerMqttConstants.STOP_SERVICE_ACTION:
                 this.serviceStarted = false;
+                resultBundle = new Bundle();
+                resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION, TaskerMqttConstants.STOP_SERVICE_ACTION);
+                if(this.serviceStarted) {
+                    this.callbackToActivity(null, Status.OK, resultBundle);
+                }
+                else{
+                    this.callbackToActivity(null, Status.ERROR, resultBundle);
+                }
+
                 stopForeground(true);
                 stopSelf();
                 break;
             case TaskerMqttConstants.QUERY_SERVICE_RUNNING_ACTION:
-                Bundle resultBundle = new Bundle();
+                resultBundle = new Bundle();
                 resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION, TaskerMqttConstants.QUERY_SERVICE_RUNNING_ACTION);
                 if(this.serviceStarted) {
                     this.callbackToActivity(null, Status.OK, resultBundle);
