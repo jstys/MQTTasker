@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Messenger;
 import android.support.v7.app.NotificationCompat;
+import android.util.Log;
 
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
@@ -20,7 +21,7 @@ import java.util.List;
  */
 
 public class TaskerMqttService extends MqttService implements ITaskerActionRunner, ITaskerConditionChecker {
-    private static int SERVICE_NOTIF_ID = 101;
+    private static final int SERVICE_NOTIF_ID = 101;
 
     private MqttServiceHandler mqttServiceHandler;
     private Messenger mqttServiceMessanger;
@@ -48,16 +49,38 @@ public class TaskerMqttService extends MqttService implements ITaskerActionRunne
     }
 
     @Override
+    protected void callbackToActivity(String clientHandle, Status status,
+                                   Bundle dataBundle) {
+        // Don't call traceDebug, as it will try to callbackToActivity leading
+        // to recursicallbackToActivityon.
+        Intent callbackIntent = new Intent(
+                MqttServiceConstants.CALLBACK_TO_ACTIVITY);
+        if (clientHandle != null) {
+            callbackIntent.putExtra(
+                    MqttServiceConstants.CALLBACK_CLIENT_HANDLE, clientHandle);
+        }
+        callbackIntent.putExtra(MqttServiceConstants.CALLBACK_STATUS, status);
+        if (dataBundle != null) {
+            callbackIntent.putExtras(dataBundle);
+        }
+        sendBroadcast(callbackIntent);
+
+        Log.d(TAG, "Sent broadcast back to activity");
+    }
+
+    @Override
     public IBinder onBind(Intent intent) {
         return this.mqttServiceMessanger.getBinder();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        String action = intent == null ? TaskerMqttConstants.START_SERVICE_ACTION : intent.getAction();
+        String action = (intent == null) ? TaskerMqttConstants.START_SERVICE_ACTION : intent.getAction();
 
         switch(action){
             case TaskerMqttConstants.START_SERVICE_ACTION:
+                Log.d(TAG, "Starting the TaskerMqttService");
+
                 // Build required notification for foreground service
                 Notification notification = new NotificationCompat.Builder(this)
                         .setContentTitle("MQTT Subscriber Service")
@@ -67,12 +90,17 @@ public class TaskerMqttService extends MqttService implements ITaskerActionRunne
 
                 registerBroadcastReceivers();
                 this.serviceStarted = true;
+                break;
 
             default:
+                Log.d(TAG, "Received action = " + action);
+
                 // Piggyback everything else off of tasker action processing (same logic)
-                Bundle data = new Bundle();
+                Bundle extras = intent.getExtras();
+                Bundle data = (extras == null) ? new Bundle() : extras;
                 data.putString(TaskerMqttConstants.ACTION_EXTRA, action);
                 runAction(this, data);
+                break;
         }
 
         return START_STICKY;
@@ -87,7 +115,7 @@ public class TaskerMqttService extends MqttService implements ITaskerActionRunne
         switch(action){
             case TaskerMqttConstants.CONNECT_ACTION:
                 String profileName = data.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA, null);
-                List<MqttConnectionProfileRecord> profileList = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "clientID = ?", profileName);
+                List<MqttConnectionProfileRecord> profileList = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "client_id = ?", profileName);
 
                 if (profileList.size() == 1) {
                     MqttConnectOptions options = new MqttConnectOptions();
@@ -99,15 +127,15 @@ public class TaskerMqttService extends MqttService implements ITaskerActionRunne
                     if (profile.cleanSession) {
                         options.setCleanSession(true);
                     }
-                    if (profile.username != null) {
+                    if (profile.username != null && !profile.username.trim().equals("")) {
                         options.setUserName(profile.username);
                     }
-                    if (profile.password != null) {
+                    if (profile.password != null && !profile.password.trim().equals("")) {
                         options.setPassword(profile.password.toCharArray());
                     }
 
                     try {
-                        connect(TaskerMqttConstants.TASKER_CLIENT_ID, options, null, null);
+                        connect(getClient(profile.serverURI, profileName), options, null, null);
                     } catch (MqttException e) {
                         e.printStackTrace();
                     }
@@ -137,12 +165,12 @@ public class TaskerMqttService extends MqttService implements ITaskerActionRunne
                 stopSelf();
                 break;
             case TaskerMqttConstants.QUERY_SERVICE_RUNNING_ACTION:
+                Bundle resultBundle = new Bundle();
+                resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION, TaskerMqttConstants.QUERY_SERVICE_RUNNING_ACTION);
                 if(this.serviceStarted) {
-                    this.callbackToActivity(null, Status.OK, null);
+                    this.callbackToActivity(null, Status.OK, resultBundle);
                 }
                 else{
-                    Bundle resultBundle = new Bundle();
-                    resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION, TaskerMqttConstants.QUERY_SERVICE_RUNNING_ACTION);
                     this.callbackToActivity(null, Status.ERROR, resultBundle);
                 }
                 break;

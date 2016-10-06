@@ -22,10 +22,12 @@ import java.util.ArrayList;
 
 public class ConnectionProfileListAdapter extends ArrayAdapter {
     private ObservableArrayList<MqttConnectionProfileModel> connectionProfiles;
+    private Context context;
 
     public ConnectionProfileListAdapter(Context context, ArrayList connectionProfiles)
     {
         super(context, 0, connectionProfiles);
+        this.context = context;
         this.connectionProfiles = (ObservableArrayList<MqttConnectionProfileModel>)connectionProfiles;
     }
 
@@ -36,7 +38,7 @@ public class ConnectionProfileListAdapter extends ArrayAdapter {
         ListitemConnectionProfileBinding binding = DataBindingUtil.inflate(inflater, R.layout.listitem_connection_profile, parent, false);
 
         binding.setProfileModel(this.connectionProfiles.get(position));
-        binding.setViewModel(new ConnectionProfileListItemViewModel());
+        binding.setViewModel(new ConnectionProfileListItemViewModel(this.context));
         return binding.getRoot();
     }
 }

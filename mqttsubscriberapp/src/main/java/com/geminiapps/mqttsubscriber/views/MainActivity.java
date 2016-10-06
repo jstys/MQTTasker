@@ -17,11 +17,13 @@ public class MainActivity extends AppCompatActivity {
 
     public AddEditProfileFragment.IConnectionProfileAddedListener profileAddedListener;
 
+    private MainViewModel vm;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ActivityMainBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
-        MainViewModel vm = new MainViewModel(this);
+        vm = new MainViewModel(this);
         profileAddedListener = vm;
         binding.setViewModel(vm);
 
@@ -29,5 +31,12 @@ public class MainActivity extends AppCompatActivity {
         Intent startIntent = new Intent(this, TaskerMqttService.class);
         startIntent.setAction(TaskerMqttConstants.START_SERVICE_ACTION);
         startService(startIntent);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        vm.onDestroy();
     }
 }

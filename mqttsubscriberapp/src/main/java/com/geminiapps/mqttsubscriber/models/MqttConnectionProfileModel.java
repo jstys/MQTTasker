@@ -2,6 +2,7 @@ package com.geminiapps.mqttsubscriber.models;
 
 import android.databinding.BaseObservable;
 import android.databinding.Bindable;
+import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 

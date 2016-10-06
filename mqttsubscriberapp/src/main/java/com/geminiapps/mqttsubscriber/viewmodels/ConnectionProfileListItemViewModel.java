@@ -1,8 +1,10 @@
 package com.geminiapps.mqttsubscriber.viewmodels;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 
+import com.geminiapps.mqttsubscriber.broadcast.MqttServiceSender;
 import com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel;
 
 /**
@@ -10,7 +12,11 @@ import com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel;
  */
 
 public class ConnectionProfileListItemViewModel {
-    private RecyclerView recyclerView;
+    private MqttServiceSender serviceSender;
+
+    public ConnectionProfileListItemViewModel(Context context){
+        this.serviceSender = new MqttServiceSender(context);
+    }
 
     public boolean profileLongClicked(MqttConnectionProfileModel model)
     {
@@ -19,5 +25,6 @@ public class ConnectionProfileListItemViewModel {
 
     public void profileClicked(MqttConnectionProfileModel model)
     {
+        this.serviceSender.connectToBroker(model);
     }
 }

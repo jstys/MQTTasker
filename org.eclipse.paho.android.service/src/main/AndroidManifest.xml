@@ -9,10 +9,6 @@
         <meta-data android:name="VERSION" android:value="1" />
         <meta-data android:name="QUERY_LOG" android:value="false" />
         <meta-data android:name="DOMAIN_PACKAGE_NAME" android:value="org.eclipse.paho.android.service" />
-        <receiver
-            android:name=".TaskerBroadcastReceiver"
-            android:enabled="true"
-            android:exported="true"></receiver>
     </application>
 
 </manifest>
