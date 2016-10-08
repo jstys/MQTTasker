@@ -52,4 +52,12 @@ public class MqttServiceSender {
 
         sendMqttServiceAction(connectIntent);
     }
+
+    public void disconnectFromBroker(MqttConnectionProfileModel profile){
+        Intent disconnectIntent = new Intent(this.context, TaskerMqttService.class);
+        disconnectIntent.setAction(TaskerMqttConstants.DISCONNECT_ACTION);
+        disconnectIntent.putExtra(TaskerMqttConstants.PROFILE_NAME_EXTRA, profile.getProfileName());
+
+        sendMqttServiceAction(disconnectIntent);
+    }
 }

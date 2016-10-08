@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout>
     <data>
+        <import type="android.view.View"/>
         <variable name="profileModel" type="com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel" />
         <variable name="viewModel" type="com.geminiapps.mqttsubscriber.viewmodels.ConnectionProfileListItemViewModel" />
     </data>
@@ -31,10 +32,24 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@{profileModel.isConnected ? @android:drawable/presence_online : @android:drawable/presence_busy}"
+            android:visibility="@{profileModel.isConnecting ? View.GONE : View.VISIBLE}"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
             android:id="@+id/imageView"
             android:layout_centerVertical="true"
             android:layout_alignParentTop="false" />
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:id="@+id/connection_spinner"
+            android:layout_centerVertical="true"
+            android:layout_alignParentTop="false"
+            android:visibility="@{profileModel.isConnecting ? View.VISIBLE : View.GONE}"
+            android:indeterminate="true" />
+
     </RelativeLayout>
 </layout>

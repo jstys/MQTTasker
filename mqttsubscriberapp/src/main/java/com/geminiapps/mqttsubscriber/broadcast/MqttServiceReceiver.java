@@ -48,8 +48,10 @@ public class MqttServiceReceiver extends BroadcastReceiver {
             Bundle resultBundle = intent.getExtras();
             if(resultBundle != null){
                 String action = resultBundle.getString(MqttServiceConstants.CALLBACK_ACTION);
+                String clientId = resultBundle.getString(MqttServiceConstants.CALLBACK_CLIENT_HANDLE);
                 if(action != null){
                     boolean status = intent.getSerializableExtra(MqttServiceConstants.CALLBACK_STATUS) == Status.OK;
+                    String error = intent.getStringExtra(MqttServiceConstants.CALLBACK_ERROR_MESSAGE);
                     switch(action){
                         case TaskerMqttConstants.START_SERVICE_ACTION:
                             this.listener.onStartServiceResponse(status);
@@ -59,6 +61,12 @@ public class MqttServiceReceiver extends BroadcastReceiver {
                             break;
                         case TaskerMqttConstants.QUERY_SERVICE_RUNNING_ACTION:
                             this.listener.onQueryServiceRunningResponse(status);
+                            break;
+                        case MqttServiceConstants.CONNECT_ACTION:
+                            this.listener.onClientConnectResponse(clientId, status, error);
+                            break;
+                        case MqttServiceConstants.DISCONNECT_ACTION:
+                            this.listener.onClientDisconnectResponse(clientId, status);
                             break;
                         default:
                             Toast.makeText(context, "Received broadcast with action = " + action, Toast.LENGTH_SHORT).show();

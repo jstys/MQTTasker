@@ -28,6 +28,7 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
     private boolean cleanSession;
     private boolean autoReconnect;
     private boolean isConnected;
+    private boolean isConnecting;
 
     public MqttConnectionProfileModel()
     {
@@ -37,6 +38,8 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
         this.password = "";
         this.cleanSession = false;
         this.autoReconnect = false;
+        this.isConnected = false;
+        this.isConnecting = false;
     }
 
     public MqttConnectionProfileModel(String profileName, String brokerUri, String username, String password, boolean cleanSession, boolean autoReconnect) {
@@ -47,6 +50,7 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
         this.cleanSession = cleanSession;
         this.autoReconnect = autoReconnect;
         this.isConnected = false;
+        this.isConnecting = false;
     }
 
     @Bindable
@@ -84,6 +88,9 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
         return isConnected;
     }
 
+    @Bindable
+    public boolean getIsConnecting() { return isConnecting; }
+
     public void setProfileName(String profileName) {
         this.profileName = profileName;
         notifyPropertyChanged(BR.profileName);
@@ -119,6 +126,11 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
         notifyPropertyChanged(BR.isConnected);
     }
 
+    public void setIsConnecting(boolean connecting) {
+        this.isConnecting = connecting;
+        notifyPropertyChanged(BR.isConnecting);
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -133,6 +145,7 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
         dest.writeValue(this.cleanSession);
         dest.writeValue(this.autoReconnect);
         dest.writeValue(this.isConnected);
+        dest.writeValue(this.isConnecting);
     }
 
     public long save() {

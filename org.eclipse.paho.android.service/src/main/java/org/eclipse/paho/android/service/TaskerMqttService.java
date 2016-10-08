@@ -118,14 +118,16 @@ public class TaskerMqttService extends MqttService implements ITaskerActionRunne
     @Override
     public void runAction(Context context, Bundle data) {
         String topicFilter;
+        String profileName = null;
+        List<MqttConnectionProfileRecord> profileList = null;
         Bundle resultBundle = null;
         String action = data.getString(TaskerMqttConstants.ACTION_EXTRA, null);
 
         // TODO: Add failure cases
         switch(action){
             case TaskerMqttConstants.CONNECT_ACTION:
-                String profileName = data.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA, null);
-                List<MqttConnectionProfileRecord> profileList = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "client_id = ?", profileName);
+                profileName = data.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA, null);
+                profileList = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "client_id = ?", profileName);
 
                 if (profileList.size() == 1) {
                     MqttConnectOptions options = new MqttConnectOptions();
@@ -152,7 +154,13 @@ public class TaskerMqttService extends MqttService implements ITaskerActionRunne
                 }
                 break;
             case TaskerMqttConstants.DISCONNECT_ACTION:
-                disconnect(TaskerMqttConstants.TASKER_CLIENT_ID, null, null);
+                profileName = data.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA, null);
+                profileList = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "client_id = ?", profileName);
+
+                if (profileList.size() == 1) {
+                    MqttConnectionProfileRecord record = profileList.get(0);
+                    disconnect(getClient(record.serverURI, record.clientID), null, null);
+                }
                 break;
             case TaskerMqttConstants.SUBSCRIBE_ACTION:
                 topicFilter = data.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, null);
@@ -251,6 +259,13 @@ public class TaskerMqttService extends MqttService implements ITaskerActionRunne
 
         MqttSubscriptionRecord dbRecord = new MqttSubscriptionRecord(topic, clientHandle, 0);
         dbRecord.delete();
+    }
+
+    @Override
+    public void disconnect(String clientHandle, String invocationContext, String activityToken) {
+        MqttConnection client = getConnection(clientHandle);
+        client.disconnect(invocationContext, activityToken);
+        connections.remove(clientHandle);
     }
 
     public void subscribe(String clientHandle, String topicFilter, int qos, String invocationContext, String activityToken, IMqttMessageListener messageListener){

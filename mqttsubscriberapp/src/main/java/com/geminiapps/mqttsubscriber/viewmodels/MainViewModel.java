@@ -111,6 +111,32 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
         this.serviceRunning = false;
     }
 
+    @Override
+    protected void onClientConnectResponse(String clientId, boolean success, String error) {
+        MqttConnectionProfileModel model = getModel(clientId);
+        if(model != null) {
+            model.setIsConnecting(false);
+        }
+        if(success){
+            Toast.makeText(this.viewContext, clientId + " connected successfully", Toast.LENGTH_SHORT).show();
+            if(model != null){
+                model.setIsConnected(true);
+            }
+        }
+        else{
+            Toast.makeText(this.viewContext, "Error connecting client " + clientId + ": " + error, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    protected void onClientDisconnectResponse(String clientId, boolean success) {
+        MqttConnectionProfileModel model = getModel(clientId);
+        if(model != null){
+            model.setIsConnecting(false);
+            model.setIsConnected(false);
+        }
+    }
+
     public boolean onMenuClick(int itemId){
         switch(itemId){
             case R.id.service_power_menuitem:
@@ -124,5 +150,14 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
             default:
                 return true;
         }
+    }
+
+    private MqttConnectionProfileModel getModel(String clientId){
+        for(MqttConnectionProfileModel model : this.connectionProfiles){
+            if(model.getProfileName().equals(clientId)){
+                return model;
+            }
+        }
+        return null;
     }
 }
