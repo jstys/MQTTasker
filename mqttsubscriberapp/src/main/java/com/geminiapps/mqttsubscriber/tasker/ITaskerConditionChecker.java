@@ -1,4 +1,4 @@
-package org.eclipse.paho.android.service;
+package com.geminiapps.mqttsubscriber.tasker;
 
 import android.content.Context;
 import android.os.Bundle;

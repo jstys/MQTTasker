@@ -1,4 +1,4 @@
-package org.eclipse.paho.android.service;
+package org.eclipse.paho.android.service.tasker;
 
 /**
  * Created by jim.stys on 9/25/16.
@@ -13,6 +13,7 @@ public class TaskerMqttConstants {
     public static final String DISCONNECT_ACTION = "disconnect";
     public static final String SUBSCRIBE_ACTION = "subscribe";
     public static final String UNSUBSCRIBE_ACTION = "unsubscribe";
+    public static final String QUERY_TOPIC_ACTION = "queryTopic";
 
     // Other bundle data extras
     public static final String ACTION_EXTRA = "action";

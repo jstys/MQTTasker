@@ -5,15 +5,16 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel;
+import com.geminiapps.mqttsubscriber.tasker.ITaskerActionRunner;
 
-import org.eclipse.paho.android.service.TaskerMqttConstants;
-import org.eclipse.paho.android.service.TaskerMqttService;
+import org.eclipse.paho.android.service.tasker.TaskerMqttConstants;
+import org.eclipse.paho.android.service.tasker.TaskerMqttService;
 
 /**
  * Created by jim.stys on 10/5/16.
  */
 
-public class MqttServiceSender {
+public class MqttServiceSender implements ITaskerActionRunner{
     private Context context;
 
     public MqttServiceSender(Context context){
@@ -53,11 +54,16 @@ public class MqttServiceSender {
         sendMqttServiceAction(connectIntent);
     }
 
-    public void disconnectFromBroker(MqttConnectionProfileModel profile){
+    public void disconnectFromBroker(MqttConnectionProfileModel profile) {
         Intent disconnectIntent = new Intent(this.context, TaskerMqttService.class);
         disconnectIntent.setAction(TaskerMqttConstants.DISCONNECT_ACTION);
         disconnectIntent.putExtra(TaskerMqttConstants.PROFILE_NAME_EXTRA, profile.getProfileName());
 
         sendMqttServiceAction(disconnectIntent);
+    }
+
+    @Override
+    public void runAction(Context context, Bundle data) {
+
     }
 }

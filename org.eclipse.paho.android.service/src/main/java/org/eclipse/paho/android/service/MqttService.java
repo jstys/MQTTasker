@@ -271,7 +271,7 @@ public class MqttService extends Service implements MqttTraceHandler {
    * @param dataBundle
    *            the data to be passed
    */
-  void callbackToActivity(String clientHandle, Status status,
+  public void callbackToActivity(String clientHandle, Status status,
       Bundle dataBundle) {
     // Don't call traceDebug, as it will try to callbackToActivity leading
     // to recursicallbackToActivityon.

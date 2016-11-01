@@ -2,15 +2,12 @@ package com.geminiapps.mqttsubscriber.models;
 
 import android.databinding.BaseObservable;
 import android.databinding.Bindable;
-import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.android.databinding.library.baseAdapters.BR;
 
 import org.eclipse.paho.android.service.MqttConnectionProfileRecord;
-import org.eclipse.paho.android.service.TaskerMqttConstants;
-import org.eclipse.paho.client.mqttv3.internal.wire.MqttConnect;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -154,7 +151,7 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
     }
 
     public static MqttConnectionProfileModel find(String profileName) {
-        List<MqttConnectionProfileRecord> dbRecords = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "clientId = ?", profileName);
+        List<MqttConnectionProfileRecord> dbRecords = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "client_id = ?", profileName);
         if (dbRecords.size() == 1) {
             MqttConnectionProfileRecord dbRecord = dbRecords.get(0);
             return new MqttConnectionProfileModel(dbRecord.clientID, dbRecord.serverURI, dbRecord.username, dbRecord.password, dbRecord.cleanSession, dbRecord.autoReconnect);

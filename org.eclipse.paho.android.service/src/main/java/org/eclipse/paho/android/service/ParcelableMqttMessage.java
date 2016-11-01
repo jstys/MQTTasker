@@ -48,7 +48,7 @@ public class ParcelableMqttMessage extends MqttMessage implements Parcelable {
 
   String messageId = null;
 
-  ParcelableMqttMessage(MqttMessage original) {
+  public ParcelableMqttMessage(MqttMessage original) {
     super(original.getPayload());
     setQos(original.getQos());
     setRetained(original.isRetained());

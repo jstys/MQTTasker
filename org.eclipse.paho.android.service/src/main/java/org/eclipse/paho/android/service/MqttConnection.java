@@ -63,7 +63,7 @@ import android.util.Log;
  * Activity via the MqttService.callbackToActivity() method.
  * </p>
  */
-class MqttConnection implements MqttCallbackExtended {
+public class MqttConnection implements MqttCallbackExtended {
 
 	// Strings for Intents etc..
 	private static final String TAG = "MqttConnection";
@@ -173,7 +173,7 @@ class MqttConnection implements MqttCallbackExtended {
 		wakeLockTag = buff.toString();
 	}
 
-	MqttConnection(MqttService service, String brokerUri, String clientId)
+	public MqttConnection(MqttService service, String brokerUri, String clientId)
 	{
 		this.serverURI = brokerUri;
 		this.service = service;
@@ -461,7 +461,7 @@ class MqttConnection implements MqttCallbackExtended {
 	 * @param activityToken
 	 *            arbitrary string to be passed back to the activity
 	 */
-	void disconnect(String invocationContext, String activityToken) {
+	public void disconnect(String invocationContext, String activityToken) {
 		service.traceDebug(TAG, "disconnect()");
 		disconnected = true;
 		final Bundle resultBundle = new Bundle();
@@ -843,19 +843,7 @@ class MqttConnection implements MqttCallbackExtended {
 		service.traceDebug(TAG, "connectionLost(" + why.getMessage() + ")");
 		disconnected = true;
 		try {
-			myClient.disconnect(null, new IMqttActionListener() {
-
-				@Override
-				public void onSuccess(IMqttToken asyncActionToken) {
-					// No action
-				}
-
-				@Override
-				public void onFailure(IMqttToken asyncActionToken,
-						Throwable exception) {
-					// No action
-				}
-			});
+			disconnect(null, null);
 		} catch (Exception e) {
 			// ignore it - we've done our best
 		}

@@ -12,13 +12,12 @@
  */
 package org.eclipse.paho.android.service;
 
-import android.content.Context;
-import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 
 import android.os.Message;
-import android.widget.Toast;
+
+import org.eclipse.paho.android.service.tasker.TaskerMqttService;
 
 /**
  * What the Service passes to the Activity on binding:-
@@ -58,6 +57,6 @@ public class MqttServiceHandler extends Handler {
 	@Override
 	public void handleMessage(Message msg) {
 		Bundle data = msg.getData();
-		this.mqttService.runAction(this.mqttService, data);
+		//this.mqttService.runAction(this.mqttService, data);
 	}
 }

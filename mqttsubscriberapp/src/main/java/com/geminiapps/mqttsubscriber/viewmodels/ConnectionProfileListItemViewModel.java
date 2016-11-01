@@ -27,7 +27,7 @@ public class ConnectionProfileListItemViewModel {
     {
         if(model.getIsConnected()){
             this.serviceSender.disconnectFromBroker(model);
-            model.setIsConnected(false);
+            model.setIsConnecting(true);
         }
         else{
             model.setIsConnecting(true);
