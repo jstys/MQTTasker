@@ -50,6 +50,17 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
         this.isConnecting = false;
     }
 
+    public MqttConnectionProfileModel(String profileName, String brokerUri, String username, String password, boolean cleanSession, boolean autoReconnect, boolean isConnected) {
+        this.profileName = profileName;
+        this.brokerUri = brokerUri;
+        this.username = username;
+        this.password = password;
+        this.cleanSession = cleanSession;
+        this.autoReconnect = autoReconnect;
+        this.isConnected = isConnected;
+        this.isConnecting = false;
+    }
+
     @Bindable
     public String getProfileName() {
         return profileName;
@@ -154,7 +165,7 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
         List<MqttConnectionProfileRecord> dbRecords = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "client_id = ?", profileName);
         if (dbRecords.size() == 1) {
             MqttConnectionProfileRecord dbRecord = dbRecords.get(0);
-            return new MqttConnectionProfileModel(dbRecord.clientID, dbRecord.serverURI, dbRecord.username, dbRecord.password, dbRecord.cleanSession, dbRecord.autoReconnect);
+            return new MqttConnectionProfileModel(dbRecord.clientID, dbRecord.serverURI, dbRecord.username, dbRecord.password, dbRecord.cleanSession, dbRecord.autoReconnect, dbRecord.connected);
         }
         return null;
     }
@@ -166,7 +177,7 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
         while(iter.hasNext())
         {
             MqttConnectionProfileRecord dbRecord = iter.next();
-            models.add(new MqttConnectionProfileModel(dbRecord.clientID, dbRecord.serverURI, dbRecord.username, dbRecord.password, dbRecord.cleanSession, dbRecord.autoReconnect));
+            models.add(new MqttConnectionProfileModel(dbRecord.clientID, dbRecord.serverURI, dbRecord.username, dbRecord.password, dbRecord.cleanSession, dbRecord.autoReconnect, dbRecord.connected));
         }
 
         return models;

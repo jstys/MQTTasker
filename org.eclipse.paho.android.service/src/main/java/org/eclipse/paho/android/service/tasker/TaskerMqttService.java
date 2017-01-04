@@ -22,6 +22,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -55,6 +56,22 @@ public class TaskerMqttService extends MqttService {
         super.onDestroy();
     }
 
+    private void persistState(Status status, Bundle data)
+    {
+        String action = data.getString(MqttServiceConstants.CALLBACK_ACTION, "");
+        String clientId = data.getString(MqttServiceConstants.CALLBACK_INVOCATION_CONTEXT, "");
+        if(action.equals(MqttServiceConstants.CONNECT_ACTION)){
+            if(status == Status.OK){
+                setClientConnectedState(MqttConnectionProfileRecord.findOne(clientId), true);
+            }
+        }
+        else if(action.equals(MqttServiceConstants.DISCONNECT_ACTION)){
+            if(status == Status.OK){
+                setClientConnectedState(MqttConnectionProfileRecord.findOne(clientId), false);
+            }
+        }
+    }
+
     @Override
     public void callbackToActivity(String clientHandle, Status status,
                                    Bundle dataBundle) {
@@ -70,6 +87,7 @@ public class TaskerMqttService extends MqttService {
         if (dataBundle != null) {
             callbackIntent.putExtras(dataBundle);
         }
+        persistState(status, dataBundle);
         sendBroadcast(callbackIntent);
 
         Log.d(TAG, "Sent broadcast back to activity");
@@ -96,6 +114,8 @@ public class TaskerMqttService extends MqttService {
 
                 if(!this.serviceStarted) {
                     Log.d(TAG, "Starting the TaskerMqttService");
+
+                    resetAllClientsConnectedState();
 
                     // Build required notification for foreground service
                     Notification notification = new NotificationCompat.Builder(this)
@@ -134,7 +154,7 @@ public class TaskerMqttService extends MqttService {
                     }
 
                     try {
-                        connect(getClient(profile.serverURI, profileName), options, null, null);
+                        connect(getClient(profile.serverURI, profileName), options, profileName, null);
                     } catch (MqttException e) {
                         e.printStackTrace();
                     }
@@ -146,7 +166,7 @@ public class TaskerMqttService extends MqttService {
 
                 if (profileList.size() == 1) {
                     MqttConnectionProfileRecord record = profileList.get(0);
-                    disconnect(getClient(record.serverURI, profileName), null, null);
+                    disconnect(getClient(record.serverURI, profileName), profileName, null);
                 }
                 break;
             case TaskerMqttConstants.SUBSCRIBE_ACTION:
@@ -254,5 +274,19 @@ public class TaskerMqttService extends MqttService {
 
         MqttSubscriptionRecord dbRecord = new MqttSubscriptionRecord(topicFilter, clientHandle, qos);
         dbRecord.save();
+    }
+
+    private void setClientConnectedState(MqttConnectionProfileRecord record, boolean connected){
+        if(record != null){
+            record.connected = connected;
+            record.save();
+        }
+    }
+
+    private void resetAllClientsConnectedState(){
+        Iterator<MqttConnectionProfileRecord> iter = MqttSubscriptionRecord.findAll(MqttConnectionProfileRecord.class);
+        while(iter.hasNext()){
+            setClientConnectedState(iter.next(), false);
+        }
     }
 }

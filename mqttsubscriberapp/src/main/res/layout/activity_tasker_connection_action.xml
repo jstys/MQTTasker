@@ -4,8 +4,8 @@
         <variable name="viewModel" type="com.geminiapps.mqttsubscriber.viewmodels.TaskerViewModel"/>
     </data>
 
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+    <RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="10dp">
@@ -15,7 +15,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/profile_spinner_text"
-            android:textSize="24sp" />
+            android:textSize="20sp" />
 
         <Spinner
             android:layout_width="match_parent"
@@ -26,7 +26,10 @@
             android:layout_alignParentEnd="true"
             android:layout_toRightOf="@+id/profile_spinner_text"
             android:layout_toEndOf="@+id/profile_spinner_text"
-            style="@style/Widget.AppCompat.Spinner" />
+            style="@style/Widget.AppCompat.Spinner"
+            android:textAlignment="center"
+            android:gravity="center_vertical"
+            android:layout_alignParentTop="true" />
 
         <Button
             android:text="Accept"
@@ -40,6 +43,25 @@
             android:layout_alignParentEnd="true"
             android:onClick="@{()->viewModel.saveConnectionActionSettings()}"
             style="@style/Widget.AppCompat.Button.Borderless.Colored" />
+
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/profile_spinner_text">
+            <RadioButton
+                android:text="Connect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:id="@+id/connect_radio_button" />
+
+            <RadioButton
+                android:text="Disconnect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/disconnect_radio_button"
+                android:layout_marginTop="10dp" />
+        </RadioGroup>
 
     </RelativeLayout>
 </layout>

@@ -26,12 +26,12 @@ public class ConnectionProfileListItemViewModel {
     public void profileClicked(MqttConnectionProfileModel model)
     {
         if(model.getIsConnected()){
-            this.serviceSender.disconnectFromBroker(model);
+            this.serviceSender.disconnectFromBroker(model.getProfileName());
             model.setIsConnecting(true);
         }
         else{
             model.setIsConnecting(true);
-            this.serviceSender.connectToBroker(model);
+            this.serviceSender.connectToBroker(model.getProfileName());
         }
     }
 }

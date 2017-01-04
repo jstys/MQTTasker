@@ -17,6 +17,7 @@ public class MqttConnectionProfileRecord extends SugarRecord{
     public String password;
     public boolean autoReconnect;
     public boolean cleanSession;
+    public boolean connected;
 
     public MqttConnectionProfileRecord(){}
 
@@ -28,6 +29,12 @@ public class MqttConnectionProfileRecord extends SugarRecord{
         this.password = password;
         this.autoReconnect = autoReconnect;
         this.cleanSession = cleanSession;
+        this.connected = false;
+    }
+
+    public static MqttConnectionProfileRecord findOne(String clientId){
+        List<MqttConnectionProfileRecord> records = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "client_id = ?", clientId);
+        return records.size() == 1 ? records.get(0) : null;
     }
 
     public List<MqttSubscriptionRecord> getSubscriptions()
