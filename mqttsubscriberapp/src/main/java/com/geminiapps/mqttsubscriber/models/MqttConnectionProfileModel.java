@@ -39,6 +39,17 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
         this.isConnecting = false;
     }
 
+    public MqttConnectionProfileModel(Parcel in){
+        this.profileName = in.readString();
+        this.brokerUri = in.readString();
+        this.username = in.readString();
+        this.password = in.readString();
+        this.cleanSession = (Boolean)in.readValue(null);
+        this.autoReconnect = (Boolean)in.readValue(null);
+        this.isConnected = (Boolean)in.readValue(null);
+        this.isConnecting = (Boolean)in.readValue(null);
+    }
+
     public MqttConnectionProfileModel(String profileName, String brokerUri, String username, String password, boolean cleanSession, boolean autoReconnect) {
         this.profileName = profileName;
         this.brokerUri = brokerUri;
@@ -182,4 +193,17 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
 
         return models;
     }
+
+    public static final Parcelable.Creator<MqttConnectionProfileModel> CREATOR = new Parcelable.Creator<MqttConnectionProfileModel>(){
+
+        @Override
+        public MqttConnectionProfileModel createFromParcel(Parcel source) {
+            return new MqttConnectionProfileModel(source);
+        }
+
+        @Override
+        public MqttConnectionProfileModel[] newArray(int size) {
+            return new MqttConnectionProfileModel[0];
+        }
+    };
 }

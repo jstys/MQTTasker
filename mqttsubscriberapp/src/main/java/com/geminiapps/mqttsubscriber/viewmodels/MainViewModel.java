@@ -47,11 +47,15 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
         this.sender = new MqttServiceSender(this.viewContext);
 
         this.serviceRunning = false;
-        this.sender.checkService();
     }
 
     public void onDestroy(){
         this.receiver.unregister();
+    }
+
+    public void onStart(){
+        this.receiver.register();
+        this.sender.checkService();
     }
 
     public ObservableArrayList<MqttConnectionProfileModel> getConnectionProfiles()

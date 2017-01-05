@@ -31,8 +31,6 @@ public class MqttServiceReceiver extends BroadcastReceiver {
 
         this.listener = listener;
         this.context = context;
-
-        register();
     }
 
     public void register(){

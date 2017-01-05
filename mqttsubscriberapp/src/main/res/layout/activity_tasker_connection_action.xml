@@ -53,14 +53,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:id="@+id/connect_radio_button" />
+                android:id="@+id/connect_radio_button"
+                android:textSize="20sp" />
 
             <RadioButton
                 android:text="Disconnect"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/disconnect_radio_button"
-                android:layout_marginTop="10dp" />
+                android:layout_marginTop="10dp"
+                android:textSize="20sp" />
         </RadioGroup>
 
     </RelativeLayout>

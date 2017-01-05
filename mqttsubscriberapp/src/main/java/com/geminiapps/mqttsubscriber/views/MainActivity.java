@@ -14,7 +14,6 @@ import com.geminiapps.mqttsubscriber.viewmodels.MainViewModel;
 public class MainActivity extends AppCompatActivity {
 
     public AddEditProfileFragment.IConnectionProfileAddedListener profileAddedListener;
-
     private MainViewModel vm;
 
     @Override
@@ -31,6 +30,13 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
 
         vm.onDestroy();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        vm.onStart();
     }
 
     @Override

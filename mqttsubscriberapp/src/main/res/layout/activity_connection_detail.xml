@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+    <data>
+        <variable name="viewModel" type="com.geminiapps.mqttsubscriber.viewmodels.ConnectionDetailViewModel" />
+        <variable name="profileModel" type="com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel" />
+    </data>
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/activity_connection"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="com.geminiapps.mqttsubscriber.views.ConnectionDetailActivity">
+
+        <TextView
+            android:text="@{viewModel.connectionState}"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:paddingTop="10sp"
+            android:paddingBottom="10sp"
+            android:textSize="20sp"
+            android:textAlignment="center" />
+
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/textView"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" >
+        </ListView>
+
+        <android.support.design.widget.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            app:fabSize="normal"
+            app:srcCompat="@android:drawable/ic_menu_add"
+            android:id="@+id/add_profile_fab"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="16dp" />
+    </RelativeLayout>
+</layout>
+
