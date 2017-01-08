@@ -8,10 +8,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import org.eclipse.paho.android.service.MqttService;
 import org.eclipse.paho.android.service.MqttServiceConstants;
 import org.eclipse.paho.android.service.Status;
 import org.eclipse.paho.android.service.tasker.TaskerMqttConstants;
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.io.Serializable;
 
@@ -51,6 +53,11 @@ public class MqttServiceReceiver extends BroadcastReceiver {
             if(resultBundle != null){
                 String action = resultBundle.getString(MqttServiceConstants.CALLBACK_ACTION);
                 String clientId = resultBundle.getString(MqttServiceConstants.CALLBACK_CLIENT_HANDLE);
+                String profileName = resultBundle.getString(MqttServiceConstants.CALLBACK_INVOCATION_CONTEXT);
+                String topicFilter = resultBundle.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA);
+                String topic = resultBundle.getString(TaskerMqttConstants.TOPIC_EXTRA);
+                String message = resultBundle.getString(TaskerMqttConstants.MESSAGE_EXTRA);
+                int qos = resultBundle.getInt(TaskerMqttConstants.QOS_EXTRA);
                 if(action != null){
                     boolean status = intent.getSerializableExtra(MqttServiceConstants.CALLBACK_STATUS) == Status.OK;
                     Serializable exception = intent.getSerializableExtra(MqttServiceConstants.CALLBACK_EXCEPTION);
@@ -68,10 +75,16 @@ public class MqttServiceReceiver extends BroadcastReceiver {
                             this.listener.onQueryServiceRunningResponse(status);
                             break;
                         case MqttServiceConstants.CONNECT_ACTION:
-                            this.listener.onClientConnectResponse(clientId, status, error);
+                            this.listener.onClientConnectResponse(profileName, clientId, status, error);
                             break;
                         case MqttServiceConstants.DISCONNECT_ACTION:
-                            this.listener.onClientDisconnectResponse(clientId, status);
+                            this.listener.onClientDisconnectResponse(profileName, clientId, status);
+                            break;
+                        case MqttServiceConstants.SUBSCRIBE_ACTION:
+                            this.listener.onClientSubscribeResponse(profileName, topicFilter, status);
+                            break;
+                        case MqttServiceConstants.MESSAGE_ARRIVED_ACTION:
+                            this.listener.onMessageArrived(profileName, topicFilter, topic, message.toString(), qos);
                             break;
                         default:
                             Toast.makeText(context, "Received broadcast with action = " + action, Toast.LENGTH_SHORT).show();

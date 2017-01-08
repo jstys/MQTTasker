@@ -1,9 +1,13 @@
 package com.geminiapps.mqttsubscriber.models;
 
 import android.databinding.BaseObservable;
+import android.databinding.Bindable;
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import com.android.databinding.library.baseAdapters.BR;
 
 import org.eclipse.paho.android.service.MqttSubscriptionRecord;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,45 +16,104 @@ import java.util.List;
  * Created by jim.stys on 10/1/16.
  */
 
-public class MqttSubscriptionModel extends BaseObservable {
+public class MqttSubscriptionModel extends BaseObservable implements Parcelable {
     private String topic;
-    private String clientId;
+    private String profileName;
     private int qos;
-    private List<MqttMessage> messages;
 
-    public MqttSubscriptionModel(String topic, String clientId, int qos)
+    public MqttSubscriptionModel(String profileName){
+        this.topic = "";
+        this.profileName = profileName;
+        this.qos = 0;
+    }
+
+    public MqttSubscriptionModel(String topic, String profileName, int qos)
     {
         this.topic = topic;
-        this.clientId = clientId;
+        this.profileName = profileName;
         this.qos = qos;
-        this.messages = new ArrayList<MqttMessage>();
+    }
+
+    public MqttSubscriptionModel(Parcel source) {
+        this.topic = source.readString();
+        this.profileName = source.readString();
+        this.qos = source.readInt();
+    }
+
+    @Bindable
+    public String getTopic(){
+        return this.topic;
+    }
+
+    public String getProfileName(){
+        return this.profileName;
+    }
+
+    @Bindable
+    public int getQos(){
+        return this.qos;
+    }
+
+    public void setTopic(String topic){
+        this.topic = topic;
+        notifyPropertyChanged(BR.topic);
+    }
+
+    public void setQos(int qos){
+        this.qos = qos;
+        notifyPropertyChanged(BR.qos);
     }
 
     public long save()
     {
-        MqttSubscriptionRecord dbRecord = new MqttSubscriptionRecord(this.topic, this.clientId, this.qos);
+        MqttSubscriptionRecord dbRecord = new MqttSubscriptionRecord(this.topic, this.profileName, this.qos);
         return dbRecord.save();
     }
 
-    public static MqttSubscriptionModel find(String topic, String clientId)
+    public static MqttSubscriptionModel find(String topic, String profileName)
     {
-        List<MqttSubscriptionRecord> dbRecords = MqttSubscriptionRecord.find(MqttSubscriptionRecord.class, "topic = ? and profile = ?", topic, clientId);
+        List<MqttSubscriptionRecord> dbRecords = MqttSubscriptionRecord.find(MqttSubscriptionRecord.class, "topic = ? and profile_name = ?", topic, profileName);
         if(dbRecords.size() == 1)
         {
             MqttSubscriptionRecord dbRecord = dbRecords.get(0);
-            return new MqttSubscriptionModel(dbRecord.topic, dbRecord.profile.clientID, dbRecord.qos);
+            return new MqttSubscriptionModel(dbRecord.topic, dbRecord.profileName, dbRecord.qos);
         }
         return null;
     }
 
-    public static List<MqttSubscriptionModel> findAll(String clientId)
+    public static List<MqttSubscriptionModel> findAll(String profileName)
     {
         List<MqttSubscriptionModel> models = new ArrayList<>();
-        List<MqttSubscriptionRecord> dbRecords = MqttSubscriptionRecord.find(MqttSubscriptionRecord.class, "profile = ?", clientId);
+        List<MqttSubscriptionRecord> dbRecords = MqttSubscriptionRecord.find(MqttSubscriptionRecord.class, "profile_name = ?", profileName);
         for(MqttSubscriptionRecord dbRecord : dbRecords)
         {
-            models.add(new MqttSubscriptionModel(dbRecord.topic, clientId, dbRecord.qos));
+            models.add(new MqttSubscriptionModel(dbRecord.topic, profileName, dbRecord.qos));
         }
         return models;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.topic);
+        dest.writeString(this.profileName);
+        dest.writeInt(this.qos);
+    }
+
+    public static final Parcelable.Creator<MqttSubscriptionModel> CREATOR = new Parcelable.Creator<MqttSubscriptionModel>(){
+
+        @Override
+        public MqttSubscriptionModel createFromParcel(Parcel source) {
+            return new MqttSubscriptionModel(source);
+        }
+
+        @Override
+        public MqttSubscriptionModel[] newArray(int size) {
+            return new MqttSubscriptionModel[0];
+        }
+    };
 }

@@ -1,32 +1,53 @@
 package com.geminiapps.mqttsubscriber.viewmodels;
 
 import android.content.Context;
-import android.databinding.Bindable;
+import android.databinding.BindingAdapter;
+import android.databinding.ObservableArrayList;
 import android.databinding.ObservableField;
+import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AppCompatActivity;
+import android.widget.ListView;
+import android.widget.Toast;
 
 import com.geminiapps.mqttsubscriber.R;
+import com.geminiapps.mqttsubscriber.adapters.SubscriptionListAdapter;
 import com.geminiapps.mqttsubscriber.broadcast.MqttServiceListener;
 import com.geminiapps.mqttsubscriber.broadcast.MqttServiceReceiver;
 import com.geminiapps.mqttsubscriber.broadcast.MqttServiceSender;
 import com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel;
+import com.geminiapps.mqttsubscriber.models.MqttSubscriptionModel;
+import com.geminiapps.mqttsubscriber.views.AddEditSubscriptionFragment;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by jim.stys on 1/4/17.
  */
 
-public class ConnectionDetailViewModel extends MqttServiceListener{
+public class ConnectionDetailViewModel extends MqttServiceListener implements AddEditSubscriptionFragment.ISubscriptionAddedListener{
     private Context mContext;
     private MqttServiceReceiver mReceiver;
     private MqttServiceSender mSender;
     private MqttConnectionProfileModel mModel;
+    private ObservableArrayList<MqttSubscriptionModel> mSubscriptionList;
+    private Set<String> mSubscriptionTopics;
 
     public final ObservableField<String> connectionState = new ObservableField<String>();
 
     public ConnectionDetailViewModel(Context context, MqttConnectionProfileModel model){
-        this.mContext = context;
-        this.mReceiver = new MqttServiceReceiver(this, mContext);
-        this.mSender = new MqttServiceSender(mContext);
-        this.mModel = model;
+        mContext = context;
+        mReceiver = new MqttServiceReceiver(this, mContext);
+        mSender = new MqttServiceSender(mContext);
+        mModel = model;
+        mSubscriptionTopics = new HashSet<>();
+        mSubscriptionList = new ObservableArrayList<>();
+
+        for(MqttSubscriptionModel subscription : MqttSubscriptionModel.findAll(model.getProfileName())){
+            mSubscriptionList.add(subscription);
+            mSubscriptionTopics.add(subscription.getTopic());
+        }
 
         connectionState.set(getConnectionStateText());
     }
@@ -48,7 +69,16 @@ public class ConnectionDetailViewModel extends MqttServiceListener{
         mReceiver.register();
     }
 
-    public String getConnectionStateText(){
+    public ObservableArrayList<MqttSubscriptionModel> getSubscriptions(){
+        return mSubscriptionList;
+    }
+
+    @BindingAdapter("app:subscriptionItems")
+    public  static void bindList(ListView view, ObservableArrayList<MqttSubscriptionModel> list) {
+        view.setAdapter(new SubscriptionListAdapter(view.getContext(), list));
+    }
+
+    private String getConnectionStateText(){
         if(mModel.getIsConnecting()){
             if(mModel.getIsConnected()){
                 return "Disconnecting...";
@@ -68,7 +98,7 @@ public class ConnectionDetailViewModel extends MqttServiceListener{
     }
 
     @Override
-    protected void onClientConnectResponse(String clientId, boolean success, String error) {
+    protected void onClientConnectResponse(String profileName, String clientId, boolean success, String error) {
         mModel.setIsConnecting(false);
         if(success){
             mModel.setIsConnected(true);
@@ -80,7 +110,7 @@ public class ConnectionDetailViewModel extends MqttServiceListener{
     }
 
     @Override
-    protected void onClientDisconnectResponse(String clientId, boolean success) {
+    protected void onClientDisconnectResponse(String profileName, String clientId, boolean success) {
         mModel.setIsConnecting(false);
         if(success){
             mModel.setIsConnected(false);
@@ -89,6 +119,16 @@ public class ConnectionDetailViewModel extends MqttServiceListener{
             mModel.setIsConnected(true);
         }
         connectionState.set(getConnectionStateText());
+    }
+
+    @Override
+    protected void onClientSubscribeResponse(String profileName, String topicFilter, boolean success) {
+        Toast.makeText(this.mContext, "Successfully subscribed to topic filter = " + topicFilter, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onMessageArrived(String profileName, String topicFilter, String topic, String message, int qos) {
+        Toast.makeText(this.mContext, "Received message = " + message + " with qos = " + qos + " and topic = " + topic, Toast.LENGTH_SHORT).show();
     }
 
     private boolean handleConnectionAction(){
@@ -106,5 +146,46 @@ public class ConnectionDetailViewModel extends MqttServiceListener{
         }
         connectionState.set(getConnectionStateText());
         return true;
+    }
+
+    public void addEditSubscription(int index)
+    {
+        Bundle subscription = new Bundle();
+        FragmentManager fm = ((AppCompatActivity)mContext).getSupportFragmentManager();
+        AddEditSubscriptionFragment dialog = new AddEditSubscriptionFragment();
+
+        if(index >= 0 && index < mSubscriptionList.size())
+        {
+            subscription.putParcelable("subscription", mSubscriptionList.get(index));
+        }
+        subscription.putString("profile", mModel.getProfileName());
+        dialog.setArguments(subscription);
+        dialog.show(fm, "add_edit_subscription_fragment");
+    }
+
+    @Override
+    public void onSubscriptionAdded(MqttSubscriptionModel model) {
+        boolean newTopic = true;
+
+        if (mSubscriptionTopics.contains(model.getTopic())) {
+            for (int i = 0; i < mSubscriptionList.size(); i++) {
+                MqttSubscriptionModel modelIter = mSubscriptionList.get(i);
+                if (modelIter.getTopic().equals(model.getTopic())) {
+                    mSubscriptionList.set(i, model);
+                    newTopic = false;
+                    break;
+                }
+            }
+        } else {
+            mSubscriptionList.add(model);
+        }
+        mSubscriptionTopics.add(model.getTopic());
+
+        //TODO: move this logic to the service side
+        if(!newTopic){
+            mSender.unsubscribeTopic(mModel.getProfileName(), model.getTopic());
+        }
+
+        mSender.subscribeTopic(mModel.getProfileName(), model.getTopic(), model.getQos());
     }
 }

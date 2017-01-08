@@ -19,6 +19,7 @@ import java.util.List;
 
 public class MqttConnectionProfileModel extends BaseObservable implements Parcelable {
     private String profileName;
+    private String clientId;
     private String brokerUri;
     private String username;
     private String password;
@@ -30,6 +31,7 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
     public MqttConnectionProfileModel()
     {
         this.profileName = "";
+        this.clientId = "";
         this.brokerUri = "";
         this.username = "";
         this.password = "";
@@ -41,6 +43,7 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
 
     public MqttConnectionProfileModel(Parcel in){
         this.profileName = in.readString();
+        this.clientId = in.readString();
         this.brokerUri = in.readString();
         this.username = in.readString();
         this.password = in.readString();
@@ -50,8 +53,9 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
         this.isConnecting = (Boolean)in.readValue(null);
     }
 
-    public MqttConnectionProfileModel(String profileName, String brokerUri, String username, String password, boolean cleanSession, boolean autoReconnect) {
+    public MqttConnectionProfileModel(String profileName, String clientId, String brokerUri, String username, String password, boolean cleanSession, boolean autoReconnect) {
         this.profileName = profileName;
+        this.clientId = clientId;
         this.brokerUri = brokerUri;
         this.username = username;
         this.password = password;
@@ -61,8 +65,9 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
         this.isConnecting = false;
     }
 
-    public MqttConnectionProfileModel(String profileName, String brokerUri, String username, String password, boolean cleanSession, boolean autoReconnect, boolean isConnected) {
+    public MqttConnectionProfileModel(String profileName, String clientId, String brokerUri, String username, String password, boolean cleanSession, boolean autoReconnect, boolean isConnected) {
         this.profileName = profileName;
+        this.clientId = clientId;
         this.brokerUri = brokerUri;
         this.username = username;
         this.password = password;
@@ -76,6 +81,9 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
     public String getProfileName() {
         return profileName;
     }
+
+    @Bindable
+    public String getClientId() { return clientId; }
 
     @Bindable
     public String getBrokerUri() {
@@ -113,6 +121,11 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
     public void setProfileName(String profileName) {
         this.profileName = profileName;
         notifyPropertyChanged(BR.profileName);
+    }
+
+    public void setClientId(String clientId){
+        this.clientId = clientId;
+        notifyPropertyChanged(BR.clientId);
     }
 
     public void setBrokerUri(String brokerUri) {
@@ -158,6 +171,7 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(this.profileName);
+        dest.writeString(this.clientId);
         dest.writeString(this.brokerUri);
         dest.writeString(this.username);
         dest.writeString(this.password);
@@ -168,7 +182,7 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
     }
 
     public long save() {
-        MqttConnectionProfileRecord dbRecord = new MqttConnectionProfileRecord(this.profileName, this.brokerUri, this.username, this.password, this.cleanSession, this.autoReconnect);
+        MqttConnectionProfileRecord dbRecord = new MqttConnectionProfileRecord(this.profileName, this.clientId, this.brokerUri, this.username, this.password, this.cleanSession, this.autoReconnect);
         return dbRecord.save();
     }
 
@@ -176,7 +190,7 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
         List<MqttConnectionProfileRecord> dbRecords = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "client_id = ?", profileName);
         if (dbRecords.size() == 1) {
             MqttConnectionProfileRecord dbRecord = dbRecords.get(0);
-            return new MqttConnectionProfileModel(dbRecord.clientID, dbRecord.serverURI, dbRecord.username, dbRecord.password, dbRecord.cleanSession, dbRecord.autoReconnect, dbRecord.connected);
+            return new MqttConnectionProfileModel(dbRecord.profileName, dbRecord.clientId, dbRecord.serverURI, dbRecord.username, dbRecord.password, dbRecord.cleanSession, dbRecord.autoReconnect, dbRecord.connected);
         }
         return null;
     }
@@ -188,7 +202,7 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
         while(iter.hasNext())
         {
             MqttConnectionProfileRecord dbRecord = iter.next();
-            models.add(new MqttConnectionProfileModel(dbRecord.clientID, dbRecord.serverURI, dbRecord.username, dbRecord.password, dbRecord.cleanSession, dbRecord.autoReconnect, dbRecord.connected));
+            models.add(new MqttConnectionProfileModel(dbRecord.profileName, dbRecord.clientId, dbRecord.serverURI, dbRecord.username, dbRecord.password, dbRecord.cleanSession, dbRecord.autoReconnect, dbRecord.connected));
         }
 
         return models;

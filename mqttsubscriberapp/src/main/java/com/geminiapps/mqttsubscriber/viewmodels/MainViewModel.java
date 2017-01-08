@@ -30,8 +30,8 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
     private MqttServiceReceiver receiver;
     private MqttServiceSender sender;
     private boolean serviceRunning;
-    public ObservableArrayList<MqttConnectionProfileModel> connectionProfiles;
-    public Set<String> connectionProfileNames;
+    private ObservableArrayList<MqttConnectionProfileModel> connectionProfiles;
+    private Set<String> connectionProfileNames;
 
     public MainViewModel(Context context)
     {
@@ -77,7 +77,7 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
         dialog.show(fm, "add_edit_profile_fragment");
     }
 
-    @BindingAdapter("app:items")
+    @BindingAdapter("app:connectionItems")
     public  static void bindList(ListView view, ObservableArrayList<MqttConnectionProfileModel> list) {
         view.setAdapter(new ConnectionProfileListAdapter(view.getContext(), list));
     }
@@ -116,25 +116,25 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
     }
 
     @Override
-    protected void onClientConnectResponse(String clientId, boolean success, String error) {
-        MqttConnectionProfileModel model = getModel(clientId);
+    protected void onClientConnectResponse(String profileName, String clientId, boolean success, String error) {
+        MqttConnectionProfileModel model = getModel(profileName);
         if(model != null) {
             model.setIsConnecting(false);
         }
         if(success){
-            Toast.makeText(this.viewContext, clientId + " connected successfully", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this.viewContext, profileName + " connected successfully", Toast.LENGTH_SHORT).show();
             if(model != null){
                 model.setIsConnected(true);
             }
         }
         else{
-            Toast.makeText(this.viewContext, "Error connecting client " + clientId + ": " + error, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this.viewContext, "Error connecting client " + profileName + ": " + error, Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
-    protected void onClientDisconnectResponse(String clientId, boolean success) {
-        MqttConnectionProfileModel model = getModel(clientId);
+    protected void onClientDisconnectResponse(String profileName, String clientId, boolean success) {
+        MqttConnectionProfileModel model = getModel(profileName);
         if(model != null){
             model.setIsConnecting(false);
             model.setIsConnected(false);

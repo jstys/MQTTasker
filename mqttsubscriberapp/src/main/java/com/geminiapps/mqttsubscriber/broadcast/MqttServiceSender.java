@@ -75,27 +75,39 @@ public class MqttServiceSender implements ITaskerActionRunner{
         sendMqttServiceAction(disconnectIntent);
     }
 
+    public void unsubscribeTopic(String profileName, String topic){
+        Log.d(TAG, "Unsubscribing from topic = " + topic + " from profile = " + profileName);
+
+        Intent unsubscribeIntent = new Intent(this.context, TaskerMqttService.class);
+        unsubscribeIntent.setAction(TaskerMqttConstants.UNSUBSCRIBE_ACTION);
+        unsubscribeIntent.putExtra(TaskerMqttConstants.PROFILE_NAME_EXTRA, profileName);
+        unsubscribeIntent.putExtra(TaskerMqttConstants.TOPIC_FILTER_EXTRA, topic);
+
+        sendMqttServiceAction(unsubscribeIntent);
+    }
+
+    public void subscribeTopic(String profileName, String topic, int qos){
+        Log.d(TAG, "Subscribing to topic = " + topic + " from profile = " + profileName);
+
+        Intent subscribeIntent = new Intent(this.context, TaskerMqttService.class);
+        subscribeIntent.setAction(TaskerMqttConstants.SUBSCRIBE_ACTION);
+        subscribeIntent.putExtra(TaskerMqttConstants.PROFILE_NAME_EXTRA, profileName);
+        subscribeIntent.putExtra(TaskerMqttConstants.TOPIC_FILTER_EXTRA, topic);
+        subscribeIntent.putExtra(TaskerMqttConstants.QOS_EXTRA, qos);
+
+        sendMqttServiceAction(subscribeIntent);
+    }
+
     @Override
     public void runAction(Context context, Bundle data) {
         String action = data.getString(TaskerMqttConstants.ACTION_EXTRA, "");
-        switch(action){
-            case TaskerMqttConstants.START_SERVICE_ACTION:
-                startMqttService();
-                break;
-            case TaskerMqttConstants.STOP_SERVICE_ACTION:
-                stopMqttService();
-                break;
-            case TaskerMqttConstants.CONNECT_ACTION:
-                connectToBroker(data.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA, ""));
-                break;
-            case TaskerMqttConstants.DISCONNECT_ACTION:
-                disconnectFromBroker(data.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA, ""));
-                break;
-            case TaskerMqttConstants.SUBSCRIBE_ACTION:
-            case TaskerMqttConstants.UNSUBSCRIBE_ACTION:
-            default:
-                Log.d(TAG, "Action not implemented (" + action + ")");
-                break;
+        if(data.containsKey(TaskerMqttConstants.ACTION_EXTRA)){
+            data.remove(TaskerMqttConstants.ACTION_EXTRA);
         }
+
+        Intent serviceIntent = new Intent(this.context, TaskerMqttService.class);
+        serviceIntent.setAction(action);
+        serviceIntent.putExtras(data);
+        sendMqttServiceAction(serviceIntent);
     }
 }

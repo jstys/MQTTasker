@@ -8,7 +8,8 @@ public class MqttServiceListener {
     protected void onQueryServiceRunningResponse(boolean running){ /* Empty default implementation  */}
     protected void onStartServiceResponse(boolean success){ /* Empty default implementation  */ }
     protected void onStopServiceResponse(boolean success){ /* Empty default implementation  */ }
-    protected void onClientConnectResponse(String clientId, boolean success, String error){ /* Empty default implementation  */ }
-    protected void onClientDisconnectResponse(String clientId, boolean success){ /* Empty default implementation */ }
-    protected void onClientSubscribeResponse() { /* Empty default implementation  */ }
+    protected void onClientConnectResponse(String profileName, String clientId, boolean success, String error){ /* Empty default implementation  */ }
+    protected void onClientDisconnectResponse(String profileName, String clientId, boolean success){ /* Empty default implementation */ }
+    protected void onClientSubscribeResponse(String profileName, String topicFilter, boolean success) { /* Empty default implementation  */ }
+    protected void onMessageArrived(String profileName, String topicFilter, String topic, String message, int qos){ /* Empty default implementation */ }
 }

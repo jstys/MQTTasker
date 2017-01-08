@@ -12,23 +12,16 @@ import java.util.List;
 public class MqttSubscriptionRecord extends SugarRecord {
     @Unique
     public String topic;
-    public MqttConnectionProfileRecord profile;
+    public String profileName;
     public int qos;
 
     public MqttSubscriptionRecord(){}
 
-    public MqttSubscriptionRecord(String topic, MqttConnectionProfileRecord record, int qos)
+    public MqttSubscriptionRecord(String topic, String profileName, int qos)
     {
         this.topic = topic;
-        this.profile = record;
-        this.qos = qos;
-    }
-
-    public MqttSubscriptionRecord(String topic, String clientId, int qos)
-    {
-        this.topic = topic;
-        List<MqttConnectionProfileRecord> dbRecords = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "clientId = ?", clientId);
-        this.profile = dbRecords.get(0);
+        List<MqttConnectionProfileRecord> dbRecords = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "profile_name = ?", profileName);
+        this.profileName = dbRecords.get(0).profileName;
         this.qos = qos;
     }
 }

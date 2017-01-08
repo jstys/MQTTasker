@@ -32,7 +32,7 @@
             android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
-            app:items="@{viewModel.getConnectionProfiles()}"
+            app:connectionItems="@{viewModel.getConnectionProfiles()}"
             android:padding="?attr/listPreferredItemPaddingLeft"
             android:clickable="true" />
 

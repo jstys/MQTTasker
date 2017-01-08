@@ -12,12 +12,10 @@ import com.geminiapps.mqttsubscriber.views.ConnectionDetailActivity;
  */
 
 public class ConnectionProfileListItemViewModel {
-    private MqttServiceSender serviceSender;
     private Context mContext;
 
     public ConnectionProfileListItemViewModel(Context context){
-        this.serviceSender = new MqttServiceSender(context);
-        this.mContext = context;
+        mContext = context;
     }
 
     public boolean profileLongClicked(MqttConnectionProfileModel model)
@@ -27,8 +25,8 @@ public class ConnectionProfileListItemViewModel {
 
     public void profileClicked(MqttConnectionProfileModel model)
     {
-        Intent activityIntent = new Intent(this.mContext, ConnectionDetailActivity.class);
+        Intent activityIntent = new Intent(mContext, ConnectionDetailActivity.class);
         activityIntent.putExtra("profile", model);
-        this.mContext.startActivity(activityIntent);
+        mContext.startActivity(activityIntent);
     }
 }

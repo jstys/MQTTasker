@@ -11,7 +11,8 @@ import java.util.List;
 
 public class MqttConnectionProfileRecord extends SugarRecord{
     @Unique
-    public String clientID;
+    public String profileName;
+    public String clientId;
     public String serverURI;
     public String username;
     public String password;
@@ -21,9 +22,10 @@ public class MqttConnectionProfileRecord extends SugarRecord{
 
     public MqttConnectionProfileRecord(){}
 
-    public MqttConnectionProfileRecord(String clientID, String serverURI, String username, String password, boolean autoReconnect, boolean cleanSession)
+    public MqttConnectionProfileRecord(String profileName, String clientId, String serverURI, String username, String password, boolean autoReconnect, boolean cleanSession)
     {
-        this.clientID = clientID;
+        this.profileName = profileName;
+        this.clientId = clientId;
         this.serverURI = serverURI;
         this.username = username;
         this.password = password;
@@ -32,8 +34,8 @@ public class MqttConnectionProfileRecord extends SugarRecord{
         this.connected = false;
     }
 
-    public static MqttConnectionProfileRecord findOne(String clientId){
-        List<MqttConnectionProfileRecord> records = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "client_id = ?", clientId);
+    public static MqttConnectionProfileRecord findOne(String profileName){
+        List<MqttConnectionProfileRecord> records = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "profile_name = ?", profileName);
         return records.size() == 1 ? records.get(0) : null;
     }
 

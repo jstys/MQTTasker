@@ -2,8 +2,8 @@ package com.geminiapps.mqttsubscriber.views;
 
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -15,7 +15,8 @@ import com.geminiapps.mqttsubscriber.viewmodels.ConnectionDetailViewModel;
 
 public class ConnectionDetailActivity extends AppCompatActivity {
 
-    private ConnectionDetailViewModel vm;
+    public AddEditSubscriptionFragment.ISubscriptionAddedListener mSubscriptionAddedListener;
+    private ConnectionDetailViewModel mViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,8 +26,9 @@ public class ConnectionDetailActivity extends AppCompatActivity {
         MqttConnectionProfileModel model = activityIntent.getParcelableExtra("profile");
 
         ActivityConnectionDetailBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_connection_detail);
-        vm = new ConnectionDetailViewModel(this, model);
-        binding.setViewModel(vm);
+        mViewModel = new ConnectionDetailViewModel(this, model);
+        mSubscriptionAddedListener = mViewModel;
+        binding.setViewModel(mViewModel);
         binding.setProfileModel(model);
 
         setTitle(model.getProfileName());
@@ -36,14 +38,14 @@ public class ConnectionDetailActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
 
-        vm.onStop();
+        mViewModel.onStop();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
 
-        vm.onStart();
+        mViewModel.onStart();
     }
 
     @Override
@@ -55,6 +57,6 @@ public class ConnectionDetailActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        return this.vm.onMenuClick(item.getItemId());
+        return mViewModel.onMenuClick(item.getItemId());
     }
 }

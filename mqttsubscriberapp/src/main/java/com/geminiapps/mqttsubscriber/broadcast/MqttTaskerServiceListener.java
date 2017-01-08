@@ -6,12 +6,12 @@ package com.geminiapps.mqttsubscriber.broadcast;
 
 public class MqttTaskerServiceListener extends MqttServiceListener {
     @Override
-    protected void onClientConnectResponse(String clientId, boolean success, String error) {
+    protected void onClientConnectResponse(String profileName, String clientId, boolean success, String error) {
 
     }
 
     @Override
-    protected void onClientDisconnectResponse(String clientId, boolean success) {
+    protected void onClientDisconnectResponse(String profileName, String clientId, boolean success) {
 
     }
 }
