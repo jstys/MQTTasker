@@ -85,13 +85,36 @@ public class TaskerMqttService extends MqttService {
         if (dataBundle != null) {
             callbackIntent.putExtras(dataBundle);
         }
+
+        callbackToService(clientHandle, status, dataBundle);
+
         persistState(status, dataBundle);
         sendBroadcast(callbackIntent);
-
         String profileName = dataBundle.getString(MqttServiceConstants.CALLBACK_INVOCATION_CONTEXT);
 
         Log.d(TAG, "Sent broadcast back to activity");
         Log.d(TAG, "Invocation profile = " + profileName);
+    }
+
+    private void callbackToService(String clientHandle, Status status, Bundle dataBundle){
+        String action = dataBundle.getString(MqttServiceConstants.CALLBACK_ACTION, "");
+        String profileName = dataBundle.getString(MqttServiceConstants.CALLBACK_INVOCATION_CONTEXT, "");
+        switch(action){
+            case TaskerMqttConstants.CONNECT_ACTION:
+                onConnectCallback(profileName, clientHandle, status == Status.OK);
+                break;
+        }
+    }
+
+    private void onConnectCallback(String profileName, String clientId, boolean success){
+        if(success){
+            Iterator<MqttSubscriptionRecord> iter = MqttSubscriptionRecord.findAll(MqttSubscriptionRecord.class);
+            while(iter.hasNext()){
+                MqttSubscriptionRecord record = iter.next();
+                IMqttMessageListener messageListener = new MqttMessageListener(this, record.topic, profileName);
+                subscribe(clientId, record.topic, record.qos, profileName, null, messageListener);
+            }
+        }
     }
 
     @Override
