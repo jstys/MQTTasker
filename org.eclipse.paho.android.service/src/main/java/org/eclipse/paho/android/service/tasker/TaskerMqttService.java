@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Messenger;
+import android.os.Parcelable;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
@@ -56,20 +57,9 @@ public class TaskerMqttService extends MqttService {
         super.onDestroy();
     }
 
-    private void persistState(Status status, Bundle data)
+    private void persistState(String clientId, boolean connected)
     {
-        String action = data.getString(MqttServiceConstants.CALLBACK_ACTION, "");
-        String clientId = data.getString(MqttServiceConstants.CALLBACK_INVOCATION_CONTEXT, "");
-        if(action.equals(MqttServiceConstants.CONNECT_ACTION)){
-            if(status == Status.OK){
-                setClientConnectedState(MqttConnectionProfileRecord.findOne(clientId), true);
-            }
-        }
-        else if(action.equals(MqttServiceConstants.DISCONNECT_ACTION)){
-            if(status == Status.OK){
-                setClientConnectedState(MqttConnectionProfileRecord.findOne(clientId), false);
-            }
-        }
+        setClientConnectedState(MqttConnectionProfileRecord.findOne(clientId), connected);
     }
 
     @Override
@@ -88,7 +78,6 @@ public class TaskerMqttService extends MqttService {
 
         callbackToService(clientHandle, status, dataBundle);
 
-        persistState(status, dataBundle);
         sendBroadcast(callbackIntent);
         String profileName = dataBundle.getString(MqttServiceConstants.CALLBACK_INVOCATION_CONTEXT);
 
@@ -99,20 +88,39 @@ public class TaskerMqttService extends MqttService {
     private void callbackToService(String clientHandle, Status status, Bundle dataBundle){
         String action = dataBundle.getString(MqttServiceConstants.CALLBACK_ACTION, "");
         String profileName = dataBundle.getString(MqttServiceConstants.CALLBACK_INVOCATION_CONTEXT, "");
+        boolean success = (status == Status.OK);
         switch(action){
             case TaskerMqttConstants.CONNECT_ACTION:
-                onConnectCallback(profileName, clientHandle, status == Status.OK);
+                onConnectCallback(profileName, clientHandle, success);
+                break;
+            case TaskerMqttConstants.DISCONNECT_ACTION:
+                persistState(clientHandle, false);
+                break;
+            case TaskerMqttConstants.STOP_SERVICE_ACTION:
+                onStopService(success);
                 break;
         }
     }
 
     private void onConnectCallback(String profileName, String clientId, boolean success){
         if(success){
+            persistState(clientId, true);
             Iterator<MqttSubscriptionRecord> iter = MqttSubscriptionRecord.findAll(MqttSubscriptionRecord.class);
             while(iter.hasNext()){
                 MqttSubscriptionRecord record = iter.next();
                 IMqttMessageListener messageListener = new MqttMessageListener(this, record.topic, profileName);
                 subscribe(clientId, record.topic, record.qos, profileName, null, messageListener);
+            }
+        }
+        persistState(clientId, false);
+    }
+
+    private void onStopService(boolean success){
+        if(success) {
+            Iterator<MqttConnectionProfileRecord> iter = MqttConnectionProfileRecord.findAll(MqttConnectionProfileRecord.class);
+            while (iter.hasNext()) {
+                MqttConnectionProfileRecord record = iter.next();
+                persistState(record.clientId, false);
             }
         }
     }

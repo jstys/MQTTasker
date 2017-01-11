@@ -113,6 +113,9 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
     protected void onStopServiceResponse(boolean success) {
         Toast.makeText(this.viewContext, "Service stopped", Toast.LENGTH_SHORT).show();
         this.serviceRunning = false;
+        for(MqttConnectionProfileModel connectionProfile : connectionProfiles){
+            onClientDisconnectResponse(connectionProfile.getProfileName(), connectionProfile.getClientId(), true);
+        }
     }
 
     @Override
