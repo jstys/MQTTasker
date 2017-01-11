@@ -22,7 +22,7 @@ public class MqttConnectionProfileRecord extends SugarRecord{
 
     public MqttConnectionProfileRecord(){}
 
-    public MqttConnectionProfileRecord(String profileName, String clientId, String serverURI, String username, String password, boolean autoReconnect, boolean cleanSession)
+    public MqttConnectionProfileRecord(String profileName, String clientId, String serverURI, String username, String password, boolean cleanSession, boolean autoReconnect)
     {
         this.profileName = profileName;
         this.clientId = clientId;

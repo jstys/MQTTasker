@@ -57,9 +57,9 @@ public class TaskerMqttService extends MqttService {
         super.onDestroy();
     }
 
-    private void persistState(String clientId, boolean connected)
+    private void persistState(String profileName, boolean connected)
     {
-        setClientConnectedState(MqttConnectionProfileRecord.findOne(clientId), connected);
+        setClientConnectedState(MqttConnectionProfileRecord.findOne(profileName), connected);
     }
 
     @Override
@@ -104,7 +104,7 @@ public class TaskerMqttService extends MqttService {
 
     private void onConnectCallback(String profileName, String clientId, boolean success){
         if(success){
-            persistState(clientId, true);
+            persistState(profileName, true);
             Iterator<MqttSubscriptionRecord> iter = MqttSubscriptionRecord.findAll(MqttSubscriptionRecord.class);
             while(iter.hasNext()){
                 MqttSubscriptionRecord record = iter.next();
@@ -112,16 +112,12 @@ public class TaskerMqttService extends MqttService {
                 subscribe(clientId, record.topic, record.qos, profileName, null, messageListener);
             }
         }
-        persistState(clientId, false);
+        persistState(profileName, false);
     }
 
     private void onStopService(boolean success){
         if(success) {
-            Iterator<MqttConnectionProfileRecord> iter = MqttConnectionProfileRecord.findAll(MqttConnectionProfileRecord.class);
-            while (iter.hasNext()) {
-                MqttConnectionProfileRecord record = iter.next();
-                persistState(record.clientId, false);
-            }
+            resetAllClientsConnectedState();
         }
     }
 
@@ -148,8 +144,6 @@ public class TaskerMqttService extends MqttService {
 
                 if(!this.serviceStarted) {
                     Log.d(TAG, "Starting the TaskerMqttService");
-
-                    resetAllClientsConnectedState();
 
                     // Build required notification for foreground service
                     Notification notification = new NotificationCompat.Builder(this)
