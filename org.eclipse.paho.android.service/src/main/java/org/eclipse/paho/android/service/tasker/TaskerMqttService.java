@@ -62,9 +62,23 @@ public class TaskerMqttService extends MqttService {
         setClientConnectedState(MqttConnectionProfileRecord.findOne(profileName), connected);
     }
 
+    private void dumpCallbackBundle(Bundle dataBundle){
+        if (dataBundle != null) {
+            for (String key : dataBundle.keySet()) {
+                Object value = dataBundle.get(key);
+                if(value != null) {
+                    Log.d(TAG, String.format("%s %s (%s)", key,
+                            value.toString(), value.getClass().getName()));
+                }
+            }
+        }
+    }
+
     @Override
     public void callbackToActivity(String clientHandle, Status status,
                                    Bundle dataBundle) {
+        dumpCallbackBundle(dataBundle);
+
         Intent callbackIntent = new Intent(
                 MqttServiceConstants.CALLBACK_TO_ACTIVITY);
         if (clientHandle != null) {
@@ -112,7 +126,9 @@ public class TaskerMqttService extends MqttService {
                 subscribe(clientId, record.topic, record.qos, profileName, null, messageListener);
             }
         }
-        persistState(profileName, false);
+        else {
+            persistState(profileName, false);
+        }
     }
 
     private void onStopService(boolean success){
