@@ -113,6 +113,7 @@ public class MqttConnection implements MqttCallbackExtended {
 
 	//store connect ActivityToken for reconnect
 	private String reconnectActivityToken = null;
+	private String reconnectInvocationContext = null;
 
 	// our client object - instantiated on connect
 	private MqttAsyncClient myClient = null;
@@ -206,6 +207,7 @@ public class MqttConnection implements MqttCallbackExtended {
 		
 		connectOptions = options;
 		reconnectActivityToken = activityToken;
+		reconnectInvocationContext = invocationContext;
 
 		if (options != null) {
 			cleanSession = options.isCleanSession();
@@ -330,6 +332,7 @@ public class MqttConnection implements MqttCallbackExtended {
 				MqttServiceConstants.CONNECT_EXTENDED_ACTION);
 		resultBundle.putBoolean(MqttServiceConstants.CALLBACK_RECONNECT, reconnect);
 		resultBundle.putString(MqttServiceConstants.CALLBACK_SERVER_URI, serverURI);
+		resultBundle.putString(MqttServiceConstants.CALLBACK_INVOCATION_CONTEXT, this.reconnectInvocationContext);
 		service.callbackToActivity(clientHandle, Status.OK, resultBundle);
 	}
 
@@ -851,6 +854,7 @@ public class MqttConnection implements MqttCallbackExtended {
 		Bundle resultBundle = new Bundle();
 		resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION,
 				MqttServiceConstants.ON_CONNECTION_LOST_ACTION);
+		resultBundle.putString(MqttServiceConstants.CALLBACK_INVOCATION_CONTEXT, this.reconnectInvocationContext);
 		if (why != null) {
 			resultBundle.putString(MqttServiceConstants.CALLBACK_ERROR_MESSAGE,
 					why.getMessage());

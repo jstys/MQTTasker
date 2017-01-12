@@ -59,6 +59,7 @@
             tools:ignore="ExportedReceiver">
             <intent-filter>
                 <action android:name="com.twofortyfouram.locale.intent.action.FIRE_SETTING" />
+                <action android:name="com.geminiapps.mqttsubscriber.OPEN_APP" />
             </intent-filter>
         </receiver>
 
@@ -67,7 +68,7 @@
             android:name="org.eclipse.paho.android.service.tasker.TaskerMqttService"
             android:process=":org.eclipse.paho.android.service.TaskerMqttService" />
 
-        <activity android:name=".views.ConnectionDetailActivity"></activity>
+        <activity android:name=".views.ConnectionDetailActivity" />
     </application>
 
 </manifest>

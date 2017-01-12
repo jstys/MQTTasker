@@ -58,6 +58,7 @@ public class MqttServiceReceiver extends BroadcastReceiver {
                 String topic = resultBundle.getString(TaskerMqttConstants.TOPIC_EXTRA);
                 String message = resultBundle.getString(TaskerMqttConstants.MESSAGE_EXTRA);
                 int qos = resultBundle.getInt(TaskerMqttConstants.QOS_EXTRA);
+                boolean reconnect = resultBundle.getBoolean(MqttServiceConstants.CALLBACK_RECONNECT, false);
                 if(action != null){
                     boolean status = intent.getSerializableExtra(MqttServiceConstants.CALLBACK_STATUS) == Status.OK;
                     Serializable exception = intent.getSerializableExtra(MqttServiceConstants.CALLBACK_EXCEPTION);
@@ -74,9 +75,15 @@ public class MqttServiceReceiver extends BroadcastReceiver {
                         case TaskerMqttConstants.QUERY_SERVICE_RUNNING_ACTION:
                             this.listener.onQueryServiceRunningResponse(status);
                             break;
+                        case MqttServiceConstants.CONNECT_EXTENDED_ACTION:
+                            if(reconnect){
+                                this.listener.onClientConnectResponse(profileName, clientId, status, error);
+                            }
+                            break;
                         case MqttServiceConstants.CONNECT_ACTION:
                             this.listener.onClientConnectResponse(profileName, clientId, status, error);
                             break;
+                        case MqttServiceConstants.ON_CONNECTION_LOST_ACTION:
                         case MqttServiceConstants.DISCONNECT_ACTION:
                             this.listener.onClientDisconnectResponse(profileName, clientId, status);
                             break;

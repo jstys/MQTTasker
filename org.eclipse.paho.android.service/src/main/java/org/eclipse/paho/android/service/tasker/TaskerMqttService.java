@@ -1,12 +1,12 @@
 package org.eclipse.paho.android.service.tasker;
 
 import android.app.Notification;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Messenger;
-import android.os.Parcelable;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
@@ -16,7 +16,6 @@ import org.eclipse.paho.android.service.MqttService;
 import org.eclipse.paho.android.service.MqttServiceConstants;
 import org.eclipse.paho.android.service.MqttServiceHandler;
 import org.eclipse.paho.android.service.MqttSubscriptionRecord;
-import org.eclipse.paho.android.service.ParcelableMqttMessage;
 import org.eclipse.paho.android.service.Status;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
@@ -32,7 +31,7 @@ import java.util.List;
 
 public class TaskerMqttService extends MqttService {
     private static final String TAG = "TaskerMqttService";
-    private static final int SERVICE_NOTIF_ID = 101;
+    private static final int SERVICE_NOTIF_ID = 1;
 
     private MqttServiceHandler mqttServiceHandler;
     private Messenger mqttServiceMessanger;
@@ -102,11 +101,18 @@ public class TaskerMqttService extends MqttService {
     private void callbackToService(String clientHandle, Status status, Bundle dataBundle){
         String action = dataBundle.getString(MqttServiceConstants.CALLBACK_ACTION, "");
         String profileName = dataBundle.getString(MqttServiceConstants.CALLBACK_INVOCATION_CONTEXT, "");
+        boolean reconnect = dataBundle.getBoolean(MqttServiceConstants.CALLBACK_RECONNECT, false);
         boolean success = (status == Status.OK);
         switch(action){
+            case MqttServiceConstants.CONNECT_EXTENDED_ACTION:
+                if(reconnect){
+                    onConnectCallback(profileName, clientHandle, success);
+                }
+                break;
             case TaskerMqttConstants.CONNECT_ACTION:
                 onConnectCallback(profileName, clientHandle, success);
                 break;
+            case MqttServiceConstants.ON_CONNECTION_LOST_ACTION:
             case TaskerMqttConstants.DISCONNECT_ACTION:
                 persistState(clientHandle, false);
                 break;
@@ -119,9 +125,8 @@ public class TaskerMqttService extends MqttService {
     private void onConnectCallback(String profileName, String clientId, boolean success){
         if(success){
             persistState(profileName, true);
-            Iterator<MqttSubscriptionRecord> iter = MqttSubscriptionRecord.findAll(MqttSubscriptionRecord.class);
-            while(iter.hasNext()){
-                MqttSubscriptionRecord record = iter.next();
+            List<MqttSubscriptionRecord> subscriptions = MqttSubscriptionRecord.find(MqttSubscriptionRecord.class, "profile_name = ?", profileName);
+            for(MqttSubscriptionRecord record : subscriptions){
                 IMqttMessageListener messageListener = new MqttMessageListener(this, record.topic, profileName);
                 subscribe(clientId, record.topic, record.qos, profileName, null, messageListener);
             }
@@ -161,10 +166,20 @@ public class TaskerMqttService extends MqttService {
                 if(!this.serviceStarted) {
                     Log.d(TAG, "Starting the TaskerMqttService");
 
+                    resetAllClientsConnectedState();
+
+                    Intent appIntent = new Intent(TaskerMqttConstants.OPEN_APP_INTENT);
+                    PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), SERVICE_NOTIF_ID, appIntent, 0);
+
                     // Build required notification for foreground service
-                    Notification notification = new NotificationCompat.Builder(this)
+                    Notification notification = new NotificationCompat.Builder(getApplicationContext())
                             .setContentTitle("MQTT Subscriber Service")
-                            .setTicker("MQTT Subscriber Service").build();
+                            .setContentIntent(pendingIntent)
+                            .setSmallIcon(android.R.drawable.ic_dialog_email)
+                            .setTicker("MQTT Subscriber Service")
+                            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                            .setOngoing(true)
+                            .build();
                     startForeground(SERVICE_NOTIF_ID,
                             notification);
 

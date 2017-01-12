@@ -14,6 +14,7 @@ public class TaskerMqttConstants {
     public static final String SUBSCRIBE_ACTION = "subscribe";
     public static final String UNSUBSCRIBE_ACTION = "unsubscribe";
     public static final String QUERY_TOPIC_ACTION = "queryTopic";
+    public static final String OPEN_APP_INTENT = "com.geminiapps.mqttsubscriber.OPEN_APP";
 
     // Other bundle data extras
     public static final String ACTION_EXTRA = "action";

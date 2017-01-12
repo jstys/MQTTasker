@@ -37,12 +37,5 @@ public class TaskerBroadcastReceiver extends BroadcastReceiver {
             // Tasker condition check triggered
             this.conditionChecker.checkCondition(context, bundle);
         }
-        else
-        {
-            // TODO: Received invalid intent
-        }
-
-
-
     }
 }

@@ -18,8 +18,8 @@ import com.geminiapps.mqttsubscriber.broadcast.MqttServiceSender;
 import com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel;
 import com.geminiapps.mqttsubscriber.views.AddEditProfileFragment;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by jim.stys on 10/1/16.
@@ -31,22 +31,23 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
     private MqttServiceSender sender;
     private boolean serviceRunning;
     private ObservableArrayList<MqttConnectionProfileModel> connectionProfiles;
-    private Set<String> connectionProfileNames;
+    private Map<String, Integer> connectionProfileNames;
 
     public MainViewModel(Context context)
     {
         this.viewContext = context;
         this.connectionProfiles = new ObservableArrayList<>();
-        this.connectionProfileNames = new HashSet<>();
-        for(MqttConnectionProfileModel model : MqttConnectionProfileModel.findAll())
-        {
-            this.connectionProfileNames.add(model.getProfileName());
-            this.connectionProfiles.add(model);
-        }
+        this.connectionProfileNames = new HashMap<>();
         this.receiver = new MqttServiceReceiver(this, this.viewContext);
         this.sender = new MqttServiceSender(this.viewContext);
-
         this.serviceRunning = false;
+
+        this.receiver.register();
+        this.sender.checkService();
+        for(MqttConnectionProfileModel model : MqttConnectionProfileModel.findAll())
+        {
+            addOrUpdateConnectionProfile(model);
+        }
     }
 
     public void onDestroy(){
@@ -54,8 +55,7 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
     }
 
     public void onStart(){
-        this.receiver.register();
-        this.sender.checkService();
+
     }
 
     public ObservableArrayList<MqttConnectionProfileModel> getConnectionProfiles()
@@ -84,22 +84,12 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
 
     @Override
     public void onProfileAdded(MqttConnectionProfileModel model) {
-        if (this.connectionProfileNames.contains(model.getProfileName())) {
-            for (int i = 0; i < this.connectionProfiles.size(); i++) {
-                MqttConnectionProfileModel modelIter = this.connectionProfiles.get(i);
-                if (modelIter.getProfileName().equals(model.getProfileName())) {
-                    this.connectionProfiles.set(i, model);
-                    break;
-                }
-            }
-        } else {
-            this.connectionProfiles.add(model);
-        }
-        this.connectionProfileNames.add(model.getProfileName());
+        addOrUpdateConnectionProfile(model);
     }
 
     @Override
     public void onQueryServiceRunningResponse(boolean running) {
+        Toast.makeText(this.viewContext, "Service running = " + running, Toast.LENGTH_SHORT).show();
         this.serviceRunning = running;
     }
 
@@ -166,5 +156,15 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
             }
         }
         return null;
+    }
+
+    private void addOrUpdateConnectionProfile(MqttConnectionProfileModel model){
+        if(!this.connectionProfileNames.containsKey(model.getProfileName())){
+            this.connectionProfiles.add(model);
+            this.connectionProfileNames.put(model.getProfileName(), this.connectionProfiles.size()-1);
+        }
+        else{
+            this.connectionProfiles.set(this.connectionProfileNames.get(model.getProfileName()), model);
+        }
     }
 }

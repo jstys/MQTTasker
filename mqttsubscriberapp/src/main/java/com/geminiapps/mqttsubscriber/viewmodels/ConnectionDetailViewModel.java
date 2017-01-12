@@ -19,8 +19,8 @@ import com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel;
 import com.geminiapps.mqttsubscriber.models.MqttSubscriptionModel;
 import com.geminiapps.mqttsubscriber.views.AddEditSubscriptionFragment;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by jim.stys on 1/4/17.
@@ -32,7 +32,7 @@ public class ConnectionDetailViewModel extends MqttServiceListener implements Ad
     private MqttServiceSender mSender;
     private MqttConnectionProfileModel mModel;
     private ObservableArrayList<MqttSubscriptionModel> mSubscriptionList;
-    private Set<String> mSubscriptionTopics;
+    private Map<String, Integer> mSubscriptionTopics;
 
     public final ObservableField<String> connectionState = new ObservableField<String>();
 
@@ -41,14 +41,8 @@ public class ConnectionDetailViewModel extends MqttServiceListener implements Ad
         mReceiver = new MqttServiceReceiver(this, mContext);
         mSender = new MqttServiceSender(mContext);
         mModel = model;
-        mSubscriptionTopics = new HashSet<>();
+        mSubscriptionTopics = new HashMap<>();
         mSubscriptionList = new ObservableArrayList<>();
-
-        for(MqttSubscriptionModel subscription : MqttSubscriptionModel.findAll(model.getProfileName())){
-            mSubscriptionList.add(subscription);
-            mSubscriptionTopics.add(subscription.getTopic());
-        }
-
         connectionState.set(getConnectionStateText());
     }
 
@@ -67,6 +61,10 @@ public class ConnectionDetailViewModel extends MqttServiceListener implements Ad
 
     public void onStart(){
         mReceiver.register();
+        for(MqttSubscriptionModel subscription : MqttSubscriptionModel.findAll(mModel.getProfileName())){
+            addOrUpdateSubscription(subscription);
+        }
+
     }
 
     public ObservableArrayList<MqttSubscriptionModel> getSubscriptions(){
@@ -112,12 +110,8 @@ public class ConnectionDetailViewModel extends MqttServiceListener implements Ad
     @Override
     protected void onClientDisconnectResponse(String profileName, String clientId, boolean success) {
         mModel.setIsConnecting(false);
-        if(success){
-            mModel.setIsConnected(false);
-        }
-        else{
-            mModel.setIsConnected(true);
-        }
+        mModel.setIsConnected(false);
+
         connectionState.set(getConnectionStateText());
     }
 
@@ -167,19 +161,7 @@ public class ConnectionDetailViewModel extends MqttServiceListener implements Ad
     public void onSubscriptionAdded(MqttSubscriptionModel model) {
         boolean newTopic = true;
 
-        if (mSubscriptionTopics.contains(model.getTopic())) {
-            for (int i = 0; i < mSubscriptionList.size(); i++) {
-                MqttSubscriptionModel modelIter = mSubscriptionList.get(i);
-                if (modelIter.getTopic().equals(model.getTopic())) {
-                    mSubscriptionList.set(i, model);
-                    newTopic = false;
-                    break;
-                }
-            }
-        } else {
-            mSubscriptionList.add(model);
-        }
-        mSubscriptionTopics.add(model.getTopic());
+        addOrUpdateSubscription(model);
 
         //TODO: move this logic to the service side
         if(!newTopic){
@@ -187,5 +169,15 @@ public class ConnectionDetailViewModel extends MqttServiceListener implements Ad
         }
 
         mSender.subscribeTopic(mModel.getProfileName(), model.getTopic(), model.getQos());
+    }
+
+    private void addOrUpdateSubscription(MqttSubscriptionModel model){
+        if (mSubscriptionTopics.containsKey(model.getTopic())) {
+            mSubscriptionList.set(mSubscriptionTopics.get(model.getTopic()), model);
+        }
+        else {
+            mSubscriptionList.add(model);
+            mSubscriptionTopics.put(model.getTopic(), mSubscriptionList.size()-1);
+        }
     }
 }
