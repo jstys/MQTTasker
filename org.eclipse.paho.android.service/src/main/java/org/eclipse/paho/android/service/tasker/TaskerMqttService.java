@@ -1,12 +1,14 @@
 package org.eclipse.paho.android.service.tasker;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Messenger;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
@@ -36,6 +38,7 @@ public class TaskerMqttService extends MqttService {
     private MqttServiceHandler mqttServiceHandler;
     private Messenger mqttServiceMessanger;
     private boolean serviceStarted;
+    private int mNumConnectedProfiles;
 
     @Override
     public void onCreate() {
@@ -115,6 +118,11 @@ public class TaskerMqttService extends MqttService {
             case MqttServiceConstants.ON_CONNECTION_LOST_ACTION:
             case TaskerMqttConstants.DISCONNECT_ACTION:
                 persistState(clientHandle, false);
+                if(mNumConnectedProfiles > 0) {
+                    mNumConnectedProfiles--;
+                    updateNotification();
+                }
+
                 break;
             case TaskerMqttConstants.STOP_SERVICE_ACTION:
                 onStopService(success);
@@ -124,6 +132,8 @@ public class TaskerMqttService extends MqttService {
 
     private void onConnectCallback(String profileName, String clientId, boolean success){
         if(success){
+            mNumConnectedProfiles++;
+            updateNotification();
             persistState(profileName, true);
             List<MqttSubscriptionRecord> subscriptions = MqttSubscriptionRecord.find(MqttSubscriptionRecord.class, "profile_name = ?", profileName);
             for(MqttSubscriptionRecord record : subscriptions){
@@ -167,21 +177,10 @@ public class TaskerMqttService extends MqttService {
                     Log.d(TAG, "Starting the TaskerMqttService");
 
                     resetAllClientsConnectedState();
+                    mNumConnectedProfiles = 0;
 
-                    Intent appIntent = new Intent(TaskerMqttConstants.OPEN_APP_INTENT);
-                    PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), SERVICE_NOTIF_ID, appIntent, 0);
-
-                    // Build required notification for foreground service
-                    Notification notification = new NotificationCompat.Builder(getApplicationContext())
-                            .setContentTitle("MQTT Subscriber Service")
-                            .setContentIntent(pendingIntent)
-                            .setSmallIcon(android.R.drawable.ic_dialog_email)
-                            .setTicker("MQTT Subscriber Service")
-                            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                            .setOngoing(true)
-                            .build();
                     startForeground(SERVICE_NOTIF_ID,
-                            notification);
+                            getServiceNotification());
 
                     registerBroadcastReceivers();
                     this.serviceStarted = true;
@@ -283,6 +282,29 @@ public class TaskerMqttService extends MqttService {
         }
 
         return START_STICKY;
+    }
+
+    private Notification getServiceNotification(){
+        Intent appIntent = new Intent(TaskerMqttConstants.OPEN_APP_INTENT);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), SERVICE_NOTIF_ID, appIntent, 0);
+        String notificationText = mNumConnectedProfiles + " Connected Profile";
+        notificationText = (mNumConnectedProfiles != 1) ? notificationText + "s" : notificationText;
+
+        return  new NotificationCompat.Builder(getApplicationContext())
+                .setContentTitle("MQTT Subscriber Service")
+                .setContentText(notificationText)
+                .setContentIntent(pendingIntent)
+                .setSmallIcon(android.R.drawable.ic_dialog_email)
+                .setTicker("MQTT Subscriber Service")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setOngoing(true)
+                .build();
+    }
+
+    private void updateNotification(){
+        Notification serviceNotification = getServiceNotification();
+        NotificationManager notifManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        notifManager.notify(SERVICE_NOTIF_ID, serviceNotification);
     }
 
     /**
