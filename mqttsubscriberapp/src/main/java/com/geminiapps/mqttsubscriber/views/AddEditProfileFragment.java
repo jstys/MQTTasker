@@ -8,6 +8,7 @@ import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 
 import com.geminiapps.mqttsubscriber.R;
 import com.geminiapps.mqttsubscriber.databinding.DialogAddEditProfileBinding;
@@ -21,6 +22,7 @@ import com.geminiapps.mqttsubscriber.viewmodels.AddEditProfileViewModel;
 public class AddEditProfileFragment extends DialogFragment {
 
     public IConnectionProfileAddedListener profileAddedListener;
+    private DialogAddEditProfileBinding mBinding;
 
     @Nullable
     @Override
@@ -30,21 +32,26 @@ public class AddEditProfileFragment extends DialogFragment {
         MqttConnectionProfileModel profile = (args != null) ? (MqttConnectionProfileModel)args.getParcelable("profile") : null;
 
         Context context = getActivity();
-        DialogAddEditProfileBinding binding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.dialog_add_edit_profile, null, false);
+        mBinding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.dialog_add_edit_profile, null, false);
 
         // Create the view model
-        AddEditProfileViewModel vm = new AddEditProfileViewModel(this.getDialog(), this.profileAddedListener);
-        binding.setViewModel(vm);
+        AddEditProfileViewModel vm = new AddEditProfileViewModel(this.getDialog(), this.profileAddedListener, this);
+        mBinding.setViewModel(vm);
+
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(context, R.array.protocol_values_array, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mBinding.protocolSpinner.setAdapter(adapter);
+        mBinding.protocolSpinner.setSelection(0);
 
         if (profile != null) {
             getDialog().setTitle("Edit Connection Profile");
-            binding.setProfileModel(profile);
+            mBinding.setProfileModel(profile);
         } else {
             getDialog().setTitle("Add Connection Profile");
-            binding.setProfileModel(new MqttConnectionProfileModel());
+            mBinding.setProfileModel(new MqttConnectionProfileModel());
         }
 
-        return binding.getRoot();
+        return mBinding.getRoot();
     }
 
     @Override
@@ -57,5 +64,9 @@ public class AddEditProfileFragment extends DialogFragment {
 
     public interface IConnectionProfileAddedListener{
         public void onProfileAdded(MqttConnectionProfileModel model);
+    }
+
+    public String getSelectedProtocol(){
+        return (String)mBinding.protocolSpinner.getSelectedItem();
     }
 }
