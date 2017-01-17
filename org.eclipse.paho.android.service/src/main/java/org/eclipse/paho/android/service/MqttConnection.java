@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.paho.android.service.MessageStore.StoredMessage;
+import org.eclipse.paho.android.service.tasker.TaskerMqttConstants;
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -712,6 +713,7 @@ public class MqttConnection implements MqttCallbackExtended {
 		resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION, MqttServiceConstants.SUBSCRIBE_ACTION);
 		resultBundle.putString(MqttServiceConstants.CALLBACK_ACTIVITY_TOKEN, activityToken);
 		resultBundle.putString(MqttServiceConstants.CALLBACK_INVOCATION_CONTEXT, invocationContext);
+		resultBundle.putString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, topicFilter);
 		if((myClient != null) && (myClient.isConnected())){
 			try {
 				IMqttActionListener actionListener = new MqttActionListener(resultBundle);
