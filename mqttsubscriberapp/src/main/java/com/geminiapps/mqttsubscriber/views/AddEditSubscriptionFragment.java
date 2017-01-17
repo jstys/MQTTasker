@@ -22,6 +22,7 @@ import com.geminiapps.mqttsubscriber.viewmodels.AddEditSubscriptionViewModel;
 
 public class AddEditSubscriptionFragment extends DialogFragment {
     public AddEditSubscriptionFragment.ISubscriptionAddedListener mSubscriptionAddedListener;
+    private DialogAddEditSubscriptionBinding mBinding;
 
     @Nullable
     @Override
@@ -32,25 +33,25 @@ public class AddEditSubscriptionFragment extends DialogFragment {
         MqttSubscriptionModel subscription = args.getParcelable("subscription");
 
         Context context = getActivity();
-        DialogAddEditSubscriptionBinding binding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.dialog_add_edit_subscription, null, false);
+        mBinding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.dialog_add_edit_subscription, null, false);
 
         // Create the view model
-        AddEditSubscriptionViewModel vm = new AddEditSubscriptionViewModel(this.getDialog(), mSubscriptionAddedListener);
-        binding.setViewModel(vm);
+        AddEditSubscriptionViewModel vm = new AddEditSubscriptionViewModel(this.getDialog(), mSubscriptionAddedListener, this);
+        mBinding.setViewModel(vm);
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(context, R.array.qos_values_array, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        binding.qosSpinner.setAdapter(adapter);
+        mBinding.qosSpinner.setAdapter(adapter);
 
         if (subscription != null) {
             getDialog().setTitle("Edit Subscription");
-            binding.setSubscriptionModel(subscription);
+            mBinding.setSubscriptionModel(subscription);
         } else {
             getDialog().setTitle("Add Subscription");
-            binding.setSubscriptionModel(new MqttSubscriptionModel(clientId));
+            mBinding.setSubscriptionModel(new MqttSubscriptionModel(clientId));
         }
 
-        return binding.getRoot();
+        return mBinding.getRoot();
     }
 
     @Override
@@ -63,5 +64,9 @@ public class AddEditSubscriptionFragment extends DialogFragment {
 
     public interface ISubscriptionAddedListener{
         public void onSubscriptionAdded(MqttSubscriptionModel model);
+    }
+
+    public int getSelectedQos(){
+        return Integer.parseInt((String)mBinding.qosSpinner.getSelectedItem());
     }
 }

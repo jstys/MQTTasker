@@ -11,16 +11,19 @@ import com.geminiapps.mqttsubscriber.views.AddEditSubscriptionFragment;
 
 public class AddEditSubscriptionViewModel {
     private Dialog dialog;
+    private AddEditSubscriptionFragment mView;
     private AddEditSubscriptionFragment.ISubscriptionAddedListener subscriptionAddedListener;
 
-    public AddEditSubscriptionViewModel(Dialog dialog, AddEditSubscriptionFragment.ISubscriptionAddedListener subscriptionAddedListener)
+    public AddEditSubscriptionViewModel(Dialog dialog, AddEditSubscriptionFragment.ISubscriptionAddedListener subscriptionAddedListener, AddEditSubscriptionFragment view)
     {
         this.dialog = dialog;
         this.subscriptionAddedListener = subscriptionAddedListener;
+        mView = view;
     }
 
     public void saveSubscription(MqttSubscriptionModel model) {
         if (model != null && !model.getTopic().isEmpty()) {
+            model.setQos(mView.getSelectedQos());
             model.save();
             this.subscriptionAddedListener.onSubscriptionAdded(model);
             this.dialog.dismiss();
