@@ -83,6 +83,12 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
         if(model.delete()) {
             connectionProfiles.remove(index);
             connectionProfileNames.remove(model.getProfileName());
+            for(String profileName : connectionProfileNames.keySet()){
+                int curIndex = connectionProfileNames.get(profileName);
+                if(curIndex > index){
+                    connectionProfileNames.put(profileName, curIndex - 1);
+                }
+            }
         }
     }
 
