@@ -77,6 +77,15 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
         dialog.show(fm, "add_edit_profile_fragment");
     }
 
+    public void deleteProfileConnection(int index)
+    {
+        MqttConnectionProfileModel model = connectionProfiles.get(index);
+        if(model.delete()) {
+            connectionProfiles.remove(index);
+            connectionProfileNames.remove(model.getProfileName());
+        }
+    }
+
     @BindingAdapter("app:connectionItems")
     public  static void bindList(ListView view, ObservableArrayList<MqttConnectionProfileModel> list) {
         view.setAdapter(new ConnectionProfileListAdapter(view.getContext(), list));
@@ -162,9 +171,11 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
         if(!this.connectionProfileNames.containsKey(model.getProfileName())){
             this.connectionProfiles.add(model);
             this.connectionProfileNames.put(model.getProfileName(), this.connectionProfiles.size()-1);
+            model.save();
         }
         else{
             this.connectionProfiles.set(this.connectionProfileNames.get(model.getProfileName()), model);
+            model.update();
         }
     }
 }

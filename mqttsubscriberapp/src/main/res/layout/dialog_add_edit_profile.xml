@@ -2,7 +2,6 @@
 <layout
     xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
-        <variable name="profileModel" type="com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel" />
         <variable name="viewModel" type="com.geminiapps.mqttsubscriber.viewmodels.AddEditProfileViewModel" />
     </data>
     <RelativeLayout
@@ -17,7 +16,7 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:id="@+id/profile_name_edittext"
-            android:text="@={profileModel.profileName}"
+            android:text="@={viewModel.mModel.profileName}"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
             android:hint="Profile Name"
@@ -28,7 +27,7 @@
             android:layout_height="wrap_content"
             android:inputType="textPersonName"
             android:hint="Client ID"
-            android:text="@={profileModel.clientId}"
+            android:text="@={viewModel.mModel.clientId}"
             android:ems="10"
             android:layout_below="@+id/profile_name_edittext"
             android:layout_alignParentLeft="true"
@@ -93,7 +92,7 @@
             android:inputType="textPersonName"
             android:ems="10"
             android:id="@+id/username_edittext"
-            android:text="@={profileModel.username}"
+            android:text="@={viewModel.mModel.username}"
             android:hint="Username"
             android:padding="?android:attr/dialogPreferredPadding"
             android:layout_below="@+id/broker_port_edittext"
@@ -108,7 +107,7 @@
             android:inputType="textPassword"
             android:ems="10"
             android:id="@+id/password_edittext"
-            android:text="@={profileModel.password}"
+            android:text="@={viewModel.mModel.password}"
             android:hint="Password"
             android:layout_below="@+id/username_edittext"
             android:layout_alignParentLeft="true"
@@ -130,7 +129,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/save_profile_button"
-                android:onClick="@{()->viewModel.saveConnectionProfile(profileModel)}"
+                android:onClick="@{()->viewModel.saveConnectionProfile()}"
                 android:layout_weight="1"
                 style="@style/Widget.AppCompat.Button.Borderless.Colored" />
 

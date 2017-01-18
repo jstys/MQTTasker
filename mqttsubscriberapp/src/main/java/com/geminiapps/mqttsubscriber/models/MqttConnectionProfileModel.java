@@ -186,8 +186,25 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
         return dbRecord.save();
     }
 
+    public long update() {
+        MqttConnectionProfileRecord dbRecord = MqttConnectionProfileRecord.findOne(this.profileName);
+        if(dbRecord != null){
+            dbRecord.updateFromModel(this.clientId, this.brokerUri, this.username, this.password);
+        }
+        return -1;
+    }
+
+    public boolean delete() {
+        MqttConnectionProfileRecord dbRecord = MqttConnectionProfileRecord.findOne(this.profileName);
+        if(dbRecord != null){
+            dbRecord.delete();
+            return true;
+        }
+        return false;
+    }
+
     public static MqttConnectionProfileModel find(String profileName) {
-        List<MqttConnectionProfileRecord> dbRecords = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "client_id = ?", profileName);
+        List<MqttConnectionProfileRecord> dbRecords = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "profile_name = ?", profileName);
         if (dbRecords.size() == 1) {
             MqttConnectionProfileRecord dbRecord = dbRecords.get(0);
             return new MqttConnectionProfileModel(dbRecord.profileName, dbRecord.clientId, dbRecord.serverURI, dbRecord.username, dbRecord.password, dbRecord.cleanSession, dbRecord.autoReconnect, dbRecord.connected);

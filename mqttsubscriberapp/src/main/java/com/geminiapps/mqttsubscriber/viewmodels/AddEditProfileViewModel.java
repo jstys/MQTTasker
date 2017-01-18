@@ -1,10 +1,9 @@
 package com.geminiapps.mqttsubscriber.viewmodels;
 
 import android.app.Dialog;
-import android.databinding.ObservableArrayList;
 import android.databinding.ObservableField;
+import android.net.Uri;
 
-import com.geminiapps.mqttsubscriber.R;
 import com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel;
 import com.geminiapps.mqttsubscriber.views.AddEditProfileFragment;
 
@@ -20,21 +19,27 @@ public class AddEditProfileViewModel {
     private AddEditProfileFragment.IConnectionProfileAddedListener profileAddedListener;
     private AddEditProfileFragment mView;
 
+    public MqttConnectionProfileModel mModel;
     public final ObservableField<String> brokerHost = new ObservableField<>();
     public final ObservableField<String> brokerPort = new ObservableField<>();
 
-    public AddEditProfileViewModel(Dialog dialog, AddEditProfileFragment.IConnectionProfileAddedListener profileAddedListener, AddEditProfileFragment view)
+    public AddEditProfileViewModel(Dialog dialog, AddEditProfileFragment.IConnectionProfileAddedListener profileAddedListener, AddEditProfileFragment view, MqttConnectionProfileModel model)
     {
         this.dialog = dialog;
         this.profileAddedListener = profileAddedListener;
         mView = view;
+        mModel = (model == null) ? new MqttConnectionProfileModel() : model;
+        if(model != null){
+            Uri brokerUri = Uri.parse(mModel.getBrokerUri());
+            brokerHost.set(brokerUri.getHost());
+            brokerPort.set(String.valueOf(brokerUri.getPort()));
+        }
     }
 
-    public void saveConnectionProfile(MqttConnectionProfileModel model) {
-        if (model != null && !model.getProfileName().isEmpty() && !brokerHost.get().isEmpty()) {
-            model.setBrokerUri(buildBrokerURI());
-            model.save();
-            this.profileAddedListener.onProfileAdded(model);
+    public void saveConnectionProfile() {
+        if (mModel != null && !mModel.getProfileName().isEmpty() && !brokerHost.get().isEmpty()) {
+            mModel.setBrokerUri(buildBrokerURI());
+            this.profileAddedListener.onProfileAdded(mModel);
             this.dialog.dismiss();
         }
     }

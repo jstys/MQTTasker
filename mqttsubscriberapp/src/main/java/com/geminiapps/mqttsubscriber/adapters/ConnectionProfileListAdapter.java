@@ -40,6 +40,7 @@ public class ConnectionProfileListAdapter extends ArrayAdapter {
 
         binding.setProfileModel(mConnectionProfileList.get(position));
         binding.setViewModel(new ConnectionProfileListItemViewModel(mContext));
+        binding.getRoot().setLongClickable(true);
         return binding.getRoot();
     }
 }

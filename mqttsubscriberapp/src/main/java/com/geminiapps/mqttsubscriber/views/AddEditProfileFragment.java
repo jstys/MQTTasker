@@ -35,7 +35,7 @@ public class AddEditProfileFragment extends DialogFragment {
         mBinding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.dialog_add_edit_profile, null, false);
 
         // Create the view model
-        AddEditProfileViewModel vm = new AddEditProfileViewModel(this.getDialog(), this.profileAddedListener, this);
+        AddEditProfileViewModel vm = new AddEditProfileViewModel(this.getDialog(), this.profileAddedListener, this, profile);
         mBinding.setViewModel(vm);
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(context, R.array.protocol_values_array, android.R.layout.simple_spinner_item);
@@ -45,10 +45,8 @@ public class AddEditProfileFragment extends DialogFragment {
 
         if (profile != null) {
             getDialog().setTitle("Edit Connection Profile");
-            mBinding.setProfileModel(profile);
         } else {
             getDialog().setTitle("Add Connection Profile");
-            mBinding.setProfileModel(new MqttConnectionProfileModel());
         }
 
         return mBinding.getRoot();

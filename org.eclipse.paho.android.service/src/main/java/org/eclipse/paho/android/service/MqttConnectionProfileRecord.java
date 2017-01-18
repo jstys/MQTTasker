@@ -34,6 +34,14 @@ public class MqttConnectionProfileRecord extends SugarRecord{
         this.connected = false;
     }
 
+    public long updateFromModel(String clientId, String serverURI, String username, String password){
+        this.clientId = clientId;
+        this.serverURI = serverURI;
+        this.username = username;
+        this.password = password;
+        return save();
+    }
+
     public static MqttConnectionProfileRecord findOne(String profileName){
         List<MqttConnectionProfileRecord> records = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "profile_name = ?", profileName);
         return records.size() == 1 ? records.get(0) : null;
