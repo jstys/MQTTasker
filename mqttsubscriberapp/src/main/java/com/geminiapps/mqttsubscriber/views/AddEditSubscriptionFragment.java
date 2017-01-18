@@ -46,9 +46,12 @@ public class AddEditSubscriptionFragment extends DialogFragment {
         if (subscription != null) {
             getDialog().setTitle("Edit Subscription");
             mBinding.setSubscriptionModel(subscription);
+            mBinding.qosSpinner.setSelection(subscription.getQos());
+            mBinding.topicEdittext.setEnabled(false);
         } else {
             getDialog().setTitle("Add Subscription");
             mBinding.setSubscriptionModel(new MqttSubscriptionModel(clientId));
+            mBinding.topicEdittext.setEnabled(true);
         }
 
         return mBinding.getRoot();

@@ -43,6 +43,7 @@ public class SubscriptionListAdapter extends ArrayAdapter {
 
         binding.setSubscriptionModel(mSubscriptionList.get(position));
         binding.setViewModel(new SubscriptionListItemViewModel(mContext));
+        binding.getRoot().setLongClickable(true);
         return binding.getRoot();
     }
 }

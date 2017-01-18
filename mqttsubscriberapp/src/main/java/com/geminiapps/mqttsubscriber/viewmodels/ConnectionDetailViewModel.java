@@ -157,27 +157,36 @@ public class ConnectionDetailViewModel extends MqttServiceListener implements Ad
         dialog.show(fm, "add_edit_subscription_fragment");
     }
 
-    @Override
-    public void onSubscriptionAdded(MqttSubscriptionModel model) {
-        boolean newTopic = true;
-
-        addOrUpdateSubscription(model);
-
-        //TODO: move this logic to the service side
-        if(!newTopic){
-            mSender.unsubscribeTopic(mModel.getProfileName(), model.getTopic());
+    public void deleteSubscription(int index){
+        MqttSubscriptionModel model = mSubscriptionList.get(index);
+        if(model.delete()) {
+            mSubscriptionList.remove(index);
+            mSubscriptionTopics.remove(model.getTopic());
+            for(String topic : mSubscriptionTopics.keySet()){
+                int curIndex = mSubscriptionTopics.get(topic);
+                if(curIndex > index){
+                    mSubscriptionTopics.put(topic, curIndex - 1);
+                }
+            }
         }
-
-        mSender.subscribeTopic(mModel.getProfileName(), model.getTopic(), model.getQos());
     }
 
-    private void addOrUpdateSubscription(MqttSubscriptionModel model){
+    @Override
+    public void onSubscriptionAdded(MqttSubscriptionModel model) {
+        boolean newTopic = addOrUpdateSubscription(model);
+
+        long id = newTopic ? model.save() : model.update();
+    }
+
+    private boolean addOrUpdateSubscription(MqttSubscriptionModel model){
         if (mSubscriptionTopics.containsKey(model.getTopic())) {
             mSubscriptionList.set(mSubscriptionTopics.get(model.getTopic()), model);
+            return false;
         }
         else {
             mSubscriptionList.add(model);
             mSubscriptionTopics.put(model.getTopic(), mSubscriptionList.size()-1);
+            return true;
         }
     }
 }

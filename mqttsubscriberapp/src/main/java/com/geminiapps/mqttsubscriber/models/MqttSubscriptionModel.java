@@ -70,6 +70,23 @@ public class MqttSubscriptionModel extends BaseObservable implements Parcelable 
         return dbRecord.save();
     }
 
+    public long update(){
+        MqttSubscriptionRecord dbRecord = MqttSubscriptionRecord.findOne(this.profileName, this.topic);
+        if(dbRecord != null){
+            return dbRecord.updateFromModel(this.qos);
+        }
+        return -1;
+    }
+
+    public boolean delete() {
+        MqttSubscriptionRecord dbRecord = MqttSubscriptionRecord.findOne(this.profileName, this.topic);
+        if(dbRecord != null){
+            dbRecord.delete();
+            return true;
+        }
+        return false;
+    }
+
     public static MqttSubscriptionModel find(String topic, String profileName)
     {
         List<MqttSubscriptionRecord> dbRecords = MqttSubscriptionRecord.find(MqttSubscriptionRecord.class, "topic = ? and profile_name = ?", topic, profileName);

@@ -45,8 +45,10 @@ public class AddEditProfileFragment extends DialogFragment {
 
         if (profile != null) {
             getDialog().setTitle("Edit Connection Profile");
+            mBinding.profileNameEdittext.setEnabled(false);
         } else {
             getDialog().setTitle("Add Connection Profile");
+            mBinding.profileNameEdittext.setEnabled(true);
         }
 
         return mBinding.getRoot();

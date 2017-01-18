@@ -24,7 +24,6 @@ public class AddEditSubscriptionViewModel {
     public void saveSubscription(MqttSubscriptionModel model) {
         if (model != null && !model.getTopic().isEmpty()) {
             model.setQos(mView.getSelectedQos());
-            model.save();
             this.subscriptionAddedListener.onSubscriptionAdded(model);
             this.dialog.dismiss();
         }

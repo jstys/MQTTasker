@@ -24,4 +24,14 @@ public class MqttSubscriptionRecord extends SugarRecord {
         this.profileName = dbRecords.get(0).profileName;
         this.qos = qos;
     }
+
+    public long updateFromModel(int qos){
+        this.qos = qos;
+        return save();
+    }
+
+    public static MqttSubscriptionRecord findOne(String profileName, String topic){
+        List<MqttSubscriptionRecord> records = MqttSubscriptionRecord.find(MqttSubscriptionRecord.class, "profile_name = ? and topic = ?", profileName, topic);
+        return records.size() == 1 ? records.get(0) : null;
+    }
 }

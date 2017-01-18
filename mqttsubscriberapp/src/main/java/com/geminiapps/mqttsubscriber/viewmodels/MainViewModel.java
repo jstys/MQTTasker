@@ -99,7 +99,8 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
 
     @Override
     public void onProfileAdded(MqttConnectionProfileModel model) {
-        addOrUpdateConnectionProfile(model);
+        boolean newProfile = addOrUpdateConnectionProfile(model);
+        long id = newProfile ? model.save() : model.update();
     }
 
     @Override
@@ -173,15 +174,15 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
         return null;
     }
 
-    private void addOrUpdateConnectionProfile(MqttConnectionProfileModel model){
+    private boolean addOrUpdateConnectionProfile(MqttConnectionProfileModel model){
         if(!this.connectionProfileNames.containsKey(model.getProfileName())){
             this.connectionProfiles.add(model);
             this.connectionProfileNames.put(model.getProfileName(), this.connectionProfiles.size()-1);
-            model.save();
+            return true;
         }
         else{
             this.connectionProfiles.set(this.connectionProfileNames.get(model.getProfileName()), model);
-            model.update();
+            return false;
         }
     }
 }

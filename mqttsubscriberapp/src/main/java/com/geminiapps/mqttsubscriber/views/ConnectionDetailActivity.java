@@ -4,9 +4,12 @@ import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 
 import com.geminiapps.mqttsubscriber.R;
 import com.geminiapps.mqttsubscriber.databinding.ActivityConnectionDetailBinding;
@@ -30,7 +33,7 @@ public class ConnectionDetailActivity extends AppCompatActivity {
         mSubscriptionAddedListener = mViewModel;
         binding.setViewModel(mViewModel);
         binding.setProfileModel(model);
-
+        registerForContextMenu(binding.subscriptionList);
         setTitle(model.getProfileName());
     }
 
@@ -58,5 +61,26 @@ public class ConnectionDetailActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         return mViewModel.onMenuClick(item.getItemId());
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        getMenuInflater().inflate(R.menu.menu_longclick , menu);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+
+        switch(item.getItemId()){
+            case R.id.edit_menu_item:
+                mViewModel.addEditSubscription(info.position);
+                return true;
+            case R.id.delete_menu_item:
+                mViewModel.deleteSubscription(info.position);
+                return true;
+        }
+        return false;
     }
 }
