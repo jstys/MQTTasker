@@ -165,7 +165,7 @@ public class TaskerMqttService extends MqttService {
         String profileName = null;
         int qos = 0;
         List<MqttConnectionProfileRecord> profileList = null;
-        Bundle data = intent.getExtras() == null ? new Bundle() : intent.getExtras();
+        Bundle data = (intent == null || intent.getExtras() == null) ? new Bundle() : intent.getExtras();
         Bundle resultBundle = null;
 
         switch(action){
