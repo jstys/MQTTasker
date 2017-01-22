@@ -136,7 +136,7 @@ public class ConnectionDetailViewModel extends MqttServiceListener implements Ad
         }
         else{
             mModel.setIsConnecting(true);
-            this.mSender.connectToBroker(mModel.getProfileName());
+            this.mSender.connectToBroker(mModel.getProfileName(), mModel.getAutoReconnect(), mModel.getCleanSession());
         }
         connectionState.set(getConnectionStateText());
         return true;

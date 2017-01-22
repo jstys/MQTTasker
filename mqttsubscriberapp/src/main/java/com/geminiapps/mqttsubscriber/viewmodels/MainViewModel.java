@@ -48,6 +48,7 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
         {
             addOrUpdateConnectionProfile(model);
         }
+        this.sender.queryProfilesConnected(null);
     }
 
     public void onDestroy(){
@@ -147,6 +148,16 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
         if(model != null){
             model.setIsConnecting(false);
             model.setIsConnected(false);
+        }
+    }
+
+    @Override
+    protected void onQueryProfileConnectedResponse(Bundle profileConnectivityMap) {
+        for(String profileName : profileConnectivityMap.keySet()){
+            MqttConnectionProfileModel model = getModel(profileName);
+            if(model != null){
+                model.setIsConnected(profileConnectivityMap.getBoolean(profileName));
+            }
         }
     }
 

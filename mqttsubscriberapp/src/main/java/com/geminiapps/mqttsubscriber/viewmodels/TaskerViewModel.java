@@ -34,6 +34,10 @@ public class TaskerViewModel {
             resultBundle.putString(TaskerMqttConstants.ACTION_EXTRA, action);
             resultBundle.putString(TaskerMqttConstants.PROFILE_NAME_EXTRA, profileName);
 
+            //TODO: populate with real values
+            resultBundle.putBoolean(TaskerMqttConstants.RECONNECT_EXTRA, false);
+            resultBundle.putBoolean(TaskerMqttConstants.CLEAN_SESSION_EXTRA, true);
+
             resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BUNDLE", resultBundle);
             resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BLURB", profileName);
             this.context.setResult(RESULT_OK, resultIntent);

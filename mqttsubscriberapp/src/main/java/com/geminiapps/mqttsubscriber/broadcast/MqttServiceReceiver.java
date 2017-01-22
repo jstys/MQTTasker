@@ -52,8 +52,7 @@ public class MqttServiceReceiver extends BroadcastReceiver {
             Bundle resultBundle = intent.getExtras();
             if(resultBundle != null){
                 String action = resultBundle.getString(MqttServiceConstants.CALLBACK_ACTION);
-                String clientId = resultBundle.getString(MqttServiceConstants.CALLBACK_CLIENT_HANDLE);
-                String profileName = resultBundle.getString(MqttServiceConstants.CALLBACK_INVOCATION_CONTEXT);
+                String profileName = resultBundle.getString(MqttServiceConstants.CALLBACK_CLIENT_HANDLE);
                 String topicFilter = resultBundle.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA);
                 String topic = resultBundle.getString(TaskerMqttConstants.TOPIC_EXTRA);
                 String message = resultBundle.getString(TaskerMqttConstants.MESSAGE_EXTRA);
@@ -77,21 +76,24 @@ public class MqttServiceReceiver extends BroadcastReceiver {
                             break;
                         case MqttServiceConstants.CONNECT_EXTENDED_ACTION:
                             if(reconnect){
-                                this.listener.onClientConnectResponse(profileName, clientId, status, error);
+                                this.listener.onClientConnectResponse(profileName, null, status, error);
                             }
                             break;
                         case MqttServiceConstants.CONNECT_ACTION:
-                            this.listener.onClientConnectResponse(profileName, clientId, status, error);
+                            this.listener.onClientConnectResponse(profileName, null, status, error);
                             break;
                         case MqttServiceConstants.ON_CONNECTION_LOST_ACTION:
                         case MqttServiceConstants.DISCONNECT_ACTION:
-                            this.listener.onClientDisconnectResponse(profileName, clientId, status);
+                            this.listener.onClientDisconnectResponse(profileName, null, status);
                             break;
                         case MqttServiceConstants.SUBSCRIBE_ACTION:
                             this.listener.onClientSubscribeResponse(profileName, topicFilter, status);
                             break;
                         case MqttServiceConstants.MESSAGE_ARRIVED_ACTION:
                             this.listener.onMessageArrived(profileName, topicFilter, topic, message.toString(), qos);
+                            break;
+                        case TaskerMqttConstants.QUERY_PROFILE_CONNECTED_ACTION:
+                            this.listener.onQueryProfileConnectedResponse(resultBundle);
                             break;
                         default:
                             Toast.makeText(context, "Received broadcast with action = " + action, Toast.LENGTH_SHORT).show();

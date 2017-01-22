@@ -10,6 +10,8 @@ import java.util.List;
  */
 
 public class MqttConnectionProfileRecord extends SugarRecord{
+    private static IConnectionProfileRecordListener dbListener;
+
     @Unique
     public String profileName;
     public String clientId;
@@ -19,6 +21,10 @@ public class MqttConnectionProfileRecord extends SugarRecord{
     public boolean autoReconnect;
     public boolean cleanSession;
     public boolean connected;
+
+    public static void setConnectionProfileRecordListener(IConnectionProfileRecordListener listener){
+        dbListener = listener;
+    }
 
     public MqttConnectionProfileRecord(){}
 
@@ -50,5 +56,35 @@ public class MqttConnectionProfileRecord extends SugarRecord{
     public List<MqttSubscriptionRecord> getSubscriptions()
     {
         return MqttSubscriptionRecord.find(MqttSubscriptionRecord.class, "profile = ?", Long.toString(getId()));
+    }
+
+    @Override
+    public long save() {
+        boolean update = (getId() != null);
+        long id = super.save();
+
+        if(update && dbListener != null){
+            dbListener.onConnectionProfileUpdated(this);
+        }
+        else if(id >= 0 && dbListener != null){
+            dbListener.onConnectionProfileCreated(this);
+        }
+
+        return id;
+    }
+
+    @Override
+    public boolean delete() {
+        if(dbListener != null){
+            dbListener.onConnectionProfileDeleted(this);
+        }
+
+        return super.delete();
+    }
+
+    public interface IConnectionProfileRecordListener{
+        void onConnectionProfileCreated(MqttConnectionProfileRecord record);
+        void onConnectionProfileUpdated(MqttConnectionProfileRecord record);
+        void onConnectionProfileDeleted(MqttConnectionProfileRecord record);
     }
 }

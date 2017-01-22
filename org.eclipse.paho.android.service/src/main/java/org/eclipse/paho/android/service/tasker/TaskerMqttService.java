@@ -6,9 +6,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.os.Messenger;
-import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
@@ -16,7 +13,6 @@ import org.eclipse.paho.android.service.MqttConnection;
 import org.eclipse.paho.android.service.MqttConnectionProfileRecord;
 import org.eclipse.paho.android.service.MqttService;
 import org.eclipse.paho.android.service.MqttServiceConstants;
-import org.eclipse.paho.android.service.MqttServiceHandler;
 import org.eclipse.paho.android.service.MqttSubscriptionRecord;
 import org.eclipse.paho.android.service.Status;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
@@ -24,56 +20,355 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-
-/**
- * Created by jim.stys on 10/3/16.
- */
 
 public class TaskerMqttService extends MqttService {
     private static final String TAG = "TaskerMqttService";
     private static final int SERVICE_NOTIF_ID = 1;
 
-    private MqttServiceHandler mqttServiceHandler;
-    private Messenger mqttServiceMessanger;
-    private boolean serviceStarted;
+    private boolean mServiceStarted;
     private int mNumConnectedProfiles;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        this.mqttServiceHandler = new MqttServiceHandler(this);
-        this.mqttServiceMessanger = new Messenger(mqttServiceHandler);
-        this.serviceStarted = false;
+        mServiceStarted = false;
+        mNumConnectedProfiles = 0;
+        Iterator<MqttConnectionProfileRecord> iter = MqttConnectionProfileRecord.findAll(MqttConnectionProfileRecord.class);
+        while(iter.hasNext()){
+            MqttConnectionProfileRecord record = iter.next();
+            MqttConnection connection = new MqttConnection(this, record.serverURI, record.clientId, null, record.profileName);
+            MqttConnectOptions options = new MqttConnectOptions();
+            options.setServerURIs(new String[]{record.serverURI});
+            if(record.username != null && !record.username.trim().equals("")) {
+                options.setUserName(record.username);
+            }
+            if(record.password != null && !record.password.trim().equals("")) {
+                options.setPassword(record.password.toCharArray());
+            }
+            connection.setConnectOptions(options);
+            connections.put(record.profileName, connection);
+        }
     }
 
     @Override
-    public void onDestroy() {
-        if(this.mqttServiceHandler != null)
-        {
-            this.mqttServiceHandler = null;
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        String action = (intent == null) ? TaskerMqttConstants.START_SERVICE_ACTION : intent.getAction();
+        Bundle data = (intent == null || intent.getExtras() == null) ? new Bundle() : intent.getExtras();
+
+        switch(action){
+            case TaskerMqttConstants.START_SERVICE_ACTION:
+                ProcessStartServiceAction();
+                break;
+            case TaskerMqttConstants.CONNECT_ACTION:
+                ProcessConnectAction(data);
+                break;
+            case TaskerMqttConstants.DISCONNECT_ACTION:
+                ProcessDisconnectAction(data);
+                break;
+            case TaskerMqttConstants.SUBSCRIBE_ACTION:
+                ProcessSubscribeAction(data);
+                break;
+            case TaskerMqttConstants.UNSUBSCRIBE_ACTION:
+                ProcessUnsubscribeAction(data);
+                break;
+            case TaskerMqttConstants.STOP_SERVICE_ACTION:
+                ProcessStopServiceAction();
+                break;
+            case TaskerMqttConstants.QUERY_SERVICE_RUNNING_ACTION:
+                ProcessQueryServiceAction();
+                break;
+            case TaskerMqttConstants.QUERY_PROFILE_CONNECTED_ACTION:
+                ProcessQueryProfileConnectedAction(data);
+                break;
+            case TaskerMqttConstants.PROFILE_CREATED_ACTION:
+                ProcessProfileCreatedAction(data);
+                break;
+            case TaskerMqttConstants.PROFILE_DELETED_ACTION:
+                ProcessProfileDeletedAction(data);
+                break;
+            case TaskerMqttConstants.SUBSCRIPTION_CREATED_ACTION:
+                ProcessSubscriptionCreatedAction(data);
+                break;
+            case TaskerMqttConstants.SUBSCRIPTION_DELETED_ACTION:
+                ProcessSubscriptionDeletedAction(data);
+                break;
+            default:
+                break;
         }
 
-        super.onDestroy();
+        return START_STICKY;
     }
 
-    private void persistState(String profileName, boolean connected)
-    {
-        setClientConnectedState(MqttConnectionProfileRecord.findOne(profileName), connected);
+    private void ProcessStartServiceAction(){
+        Log.d(TAG, "Received the Start Service action");
+
+        Bundle resultBundle = new Bundle();
+        resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION, TaskerMqttConstants.START_SERVICE_ACTION);
+
+        if(!mServiceStarted) {
+            Log.d(TAG, "Starting the TaskerMqttService");
+
+            resetAllClientsConnectedState();
+            startForeground(SERVICE_NOTIF_ID,
+                    getServiceNotification());
+
+            registerBroadcastReceivers();
+            mServiceStarted = true;
+            this.callbackToActivity(null, Status.OK, resultBundle);
+        }
+        else{
+            Log.d(TAG, "Returning error, service is already started");
+
+            this.callbackToActivity(null, Status.ERROR, resultBundle);
+        }
     }
 
-    private void dumpCallbackBundle(Bundle dataBundle){
-        if (dataBundle != null) {
-            for (String key : dataBundle.keySet()) {
-                Object value = dataBundle.get(key);
-                if(value != null) {
-                    Log.d(TAG, String.format("%s %s (%s)", key,
-                            value.toString(), value.getClass().getName()));
-                }
+    private void ProcessStopServiceAction(){
+        Log.d(TAG, "Received the Stop Service action");
+
+        mServiceStarted = false;
+        Bundle resultBundle = new Bundle();
+        resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION, TaskerMqttConstants.STOP_SERVICE_ACTION);
+        if(mServiceStarted) {
+            Log.d(TAG, "Service is being stopped");
+
+            this.callbackToActivity(null, Status.OK, resultBundle);
+        }
+        else{
+            Log.d(TAG, "Returning error, service was already stopped");
+
+            this.callbackToActivity(null, Status.ERROR, resultBundle);
+        }
+
+        stopForeground(true);
+        stopSelf();
+    }
+
+    private void ProcessConnectAction(Bundle dataBundle){
+        if(!validateBundle(dataBundle, Arrays.asList(TaskerMqttConstants.PROFILE_NAME_EXTRA,
+                                                     TaskerMqttConstants.RECONNECT_EXTRA,
+                                                     TaskerMqttConstants.CLEAN_SESSION_EXTRA))){
+            Log.w(TAG, "invalid bundle for connect action");
+            return;
+        }
+        String profileName = dataBundle.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA);
+        if(!validateExistingProfile(profileName)){
+            return;
+        }
+
+        boolean autoReconnect = dataBundle.getBoolean(TaskerMqttConstants.RECONNECT_EXTRA);
+        boolean cleanSession = dataBundle.getBoolean(TaskerMqttConstants.CLEAN_SESSION_EXTRA);
+
+        Log.d(TAG, "Received the Connect action for profile " + profileName + " with autoReconnect = " + autoReconnect + " and cleanSession = " + cleanSession);
+
+        MqttConnection profile = getConnection(profileName);
+        MqttConnectOptions options = profile.getConnectOptions();
+
+        options.setServerURIs(new String[]{profile.getServerURI()});
+        if (autoReconnect) {
+            options.setAutomaticReconnect(true);
+        }
+        if (cleanSession) {
+            options.setCleanSession(true);
+        }
+
+        try {
+            connect(profileName, null, null, null);
+        } catch (MqttException e) {
+            Log.e(TAG, "Unable to connect to profile " + profileName);
+            e.printStackTrace();
+        }
+    }
+
+    private void ProcessDisconnectAction(Bundle dataBundle){
+        if(!validateBundle(dataBundle, Arrays.asList(TaskerMqttConstants.PROFILE_NAME_EXTRA))){
+            Log.w(TAG, "invalid bundle for disconnect action");
+            return;
+        }
+
+        String profileName = dataBundle.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA);
+        if(!validateExistingProfile(profileName)){
+            return;
+        }
+
+        Log.d(TAG, "Received the Disconnect action for profile " + profileName);
+
+        disconnect(profileName, null, null);
+    }
+
+    private void ProcessSubscribeAction(Bundle dataBundle){
+        if(!validateBundle(dataBundle, Arrays.asList(TaskerMqttConstants.PROFILE_NAME_EXTRA,
+                                                     TaskerMqttConstants.TOPIC_FILTER_EXTRA,
+                                                     TaskerMqttConstants.QOS_EXTRA))){
+            Log.w(TAG, "invalid bundle for subscribe action");
+            return;
+        }
+
+        String topicFilter = dataBundle.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA);
+        int qos = dataBundle.getInt(TaskerMqttConstants.QOS_EXTRA);
+        String profileName = dataBundle.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA);
+        if(!validateExistingProfile(profileName)){
+            return;
+        }
+
+        Log.d(TAG, "Subscribe action for profile " + profileName + " with topicFilter = " + topicFilter + " and qos = " + qos);
+
+        subscribe(profileName, topicFilter, qos, null, null);
+    }
+
+    private void ProcessUnsubscribeAction(Bundle dataBundle){
+        if(!validateBundle(dataBundle, Arrays.asList(TaskerMqttConstants.PROFILE_NAME_EXTRA,
+                                                     TaskerMqttConstants.TOPIC_FILTER_EXTRA))){
+            Log.w(TAG, "invalid bundle for unsubscribe action");
+            return;
+        }
+
+        String topicFilter = dataBundle.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, null);
+        String profileName = dataBundle.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA, null);
+        if(!validateExistingProfile(profileName)){
+            return;
+        }
+
+        Log.d(TAG, "Unsubscribe action for profile = " + profileName + " and topicFilter = " + topicFilter);
+
+        unsubscribe(profileName, topicFilter, null, null);
+    }
+
+    private void ProcessQueryServiceAction(){
+        Log.d(TAG, "Query Service Action received");
+
+        Bundle resultBundle = new Bundle();
+        resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION, TaskerMqttConstants.QUERY_SERVICE_RUNNING_ACTION);
+        if(this.mServiceStarted) {
+            this.callbackToActivity(null, Status.OK, resultBundle);
+        }
+        else{
+            this.callbackToActivity(null, Status.ERROR, resultBundle);
+        }
+    }
+
+    private void ProcessSubscriptionCreatedAction(Bundle dataBundle){
+        if(!validateBundle(dataBundle, Arrays.asList(TaskerMqttConstants.PROFILE_NAME_EXTRA,
+                                                     TaskerMqttConstants.TOPIC_FILTER_EXTRA,
+                                                     TaskerMqttConstants.QOS_EXTRA))){
+            Log.w(TAG, "invalid bundle for subscription created action");
+            return;
+        }
+
+        String profileName = dataBundle.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA);
+        if(!validateExistingProfile(profileName)){
+            return;
+        }
+
+        String topic = dataBundle.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA);
+        int qos = dataBundle.getInt(TaskerMqttConstants.QOS_EXTRA);
+
+
+        subscribe(profileName, topic, qos, null, null);
+    }
+
+    private void ProcessSubscriptionDeletedAction(Bundle dataBundle){
+        if(!validateBundle(dataBundle, Arrays.asList(TaskerMqttConstants.PROFILE_NAME_EXTRA,
+                                                     TaskerMqttConstants.TOPIC_FILTER_EXTRA))){
+            Log.w(TAG, "invalid bundle for subscription deleted action");
+            return;
+        }
+
+        String profileName = dataBundle.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA);
+        if(!validateExistingProfile(profileName)){
+            return;
+        }
+
+        String topic = dataBundle.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA);
+
+        unsubscribe(profileName, topic, null, null);
+    }
+
+    private void ProcessQueryProfileConnectedAction(Bundle dataBundle){
+        Bundle resultBundle = new Bundle();
+        String profileName = dataBundle.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA);
+
+        if(!dataBundle.containsKey(TaskerMqttConstants.PROFILE_NAME_EXTRA)){
+            for(String connectionKey : connections.keySet()){
+                MqttConnection connection = connections.get(connectionKey);
+                resultBundle.putBoolean(profileName, connection.isConnected());
             }
         }
+        else if(profileName != null && validateExistingProfile(profileName)){
+            resultBundle.putBoolean(profileName, getConnection(profileName).isConnected());
+        }
+        else{
+            Log.w(TAG, "invalid profile specified = " + profileName);
+            return;
+        }
+
+        resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION, TaskerMqttConstants.QUERY_PROFILE_CONNECTED_ACTION);
+        this.callbackToActivity(profileName, Status.OK, resultBundle);
+    }
+
+    private void ProcessProfileCreatedAction(Bundle dataBundle){
+        if(!validateBundle(dataBundle, Arrays.asList(TaskerMqttConstants.PROFILE_NAME_EXTRA))){
+            Log.w(TAG, "invalid bundle for profile created action");
+            return;
+        }
+
+        String profileName = dataBundle.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA);
+
+        Log.d(TAG, "Profile created callback for profile name = " + profileName);
+
+        MqttConnectionProfileRecord createdRecord = MqttConnectionProfileRecord.findOne(profileName);
+        if(createdRecord != null) {
+            MqttConnection connection = new MqttConnection(this, createdRecord.serverURI, createdRecord.clientId, null, createdRecord.profileName);
+            MqttConnectOptions options = new MqttConnectOptions();
+            options.setServerURIs(new String[]{createdRecord.serverURI});
+            if(createdRecord.username != null && !createdRecord.username.trim().equals("")) {
+                options.setUserName(createdRecord.username);
+            }
+            if(createdRecord.password != null && !createdRecord.password.trim().equals("")) {
+                options.setPassword(createdRecord.password.toCharArray());
+            }
+            connection.setConnectOptions(options);
+            connections.put(profileName, connection);
+        }
+        else{
+            Log.w(TAG, "No database record found for profile = " + profileName);
+        }
+    }
+
+    private void ProcessProfileDeletedAction(Bundle dataBundle){
+        if(!validateBundle(dataBundle, Arrays.asList(TaskerMqttConstants.PROFILE_NAME_EXTRA))){
+            Log.w(TAG, "invalid bundle for profile deleted action");
+            return;
+        }
+
+        String profileName = dataBundle.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA);
+        if(!validateExistingProfile(profileName)){
+            return;
+        }
+
+        Log.d(TAG, "Profile deleted callback for profile name = " + profileName);
+
+        MqttConnection connection = connections.get(profileName);
+        connection.disconnect(null, null);
+        connections.remove(profileName);
+
+        MqttSubscriptionRecord.deleteAll(MqttSubscriptionRecord.class, "profile_name = ?", profileName);
+    }
+
+    @Override
+    public void disconnect(String clientHandle, String invocationContext, String activityToken) {
+        MqttConnection client = getConnection(clientHandle);
+        client.disconnect(invocationContext, activityToken);
+    }
+
+    public void subscribe(String profileName, String topicFilter, int qos, String invocationContext, String activityToken){
+        MqttConnection client = getConnection(profileName);
+        IMqttMessageListener messageListener = new MqttMessageListener(this, topicFilter, profileName);
+        client.subscribe(topicFilter, qos, invocationContext, activityToken, messageListener);
     }
 
     @Override
@@ -92,37 +387,29 @@ public class TaskerMqttService extends MqttService {
             callbackIntent.putExtras(dataBundle);
         }
 
-        callbackToService(clientHandle, status, dataBundle);
+        if(mServiceStarted) {
+            callbackToService(clientHandle, status, dataBundle);
+        }
 
         sendBroadcast(callbackIntent);
-        String profileName = dataBundle.getString(MqttServiceConstants.CALLBACK_INVOCATION_CONTEXT);
-
-        Log.d(TAG, "Sent broadcast back to activity");
-        Log.d(TAG, "Invocation profile = " + profileName);
     }
 
-    private void callbackToService(String clientHandle, Status status, Bundle dataBundle){
+    private void callbackToService(String profileName, Status status, Bundle dataBundle){
         String action = dataBundle.getString(MqttServiceConstants.CALLBACK_ACTION, "");
-        String profileName = dataBundle.getString(MqttServiceConstants.CALLBACK_INVOCATION_CONTEXT, "");
         boolean reconnect = dataBundle.getBoolean(MqttServiceConstants.CALLBACK_RECONNECT, false);
         boolean success = (status == Status.OK);
         switch(action){
             case MqttServiceConstants.CONNECT_EXTENDED_ACTION:
                 if(reconnect){
-                    onConnectCallback(profileName, clientHandle, success);
+                    onConnectCallback(profileName, success);
                 }
                 break;
             case TaskerMqttConstants.CONNECT_ACTION:
-                onConnectCallback(profileName, clientHandle, success);
+                onConnectCallback(profileName, success);
                 break;
             case MqttServiceConstants.ON_CONNECTION_LOST_ACTION:
             case TaskerMqttConstants.DISCONNECT_ACTION:
-                persistState(clientHandle, false);
-                if(mNumConnectedProfiles > 0) {
-                    mNumConnectedProfiles--;
-                    updateNotification();
-                }
-
+                updateClientState(profileName, false);
                 break;
             case TaskerMqttConstants.STOP_SERVICE_ACTION:
                 onStopService(success);
@@ -130,19 +417,13 @@ public class TaskerMqttService extends MqttService {
         }
     }
 
-    private void onConnectCallback(String profileName, String clientId, boolean success){
-        if(success){
-            mNumConnectedProfiles++;
-            updateNotification();
-            persistState(profileName, true);
+    private void onConnectCallback(String profileName, boolean success){
+        if(success && connections.containsKey(profileName)){
+            updateClientState(profileName, true);
             List<MqttSubscriptionRecord> subscriptions = MqttSubscriptionRecord.find(MqttSubscriptionRecord.class, "profile_name = ?", profileName);
             for(MqttSubscriptionRecord record : subscriptions){
-                IMqttMessageListener messageListener = new MqttMessageListener(this, record.topic, profileName);
-                subscribe(clientId, record.topic, record.qos, profileName, null, messageListener);
+                subscribe(profileName, record.topic, record.qos, null, null);
             }
-        }
-        else {
-            persistState(profileName, false);
         }
     }
 
@@ -152,136 +433,11 @@ public class TaskerMqttService extends MqttService {
         }
     }
 
-    @Override
-    public IBinder onBind(Intent intent) {
-        return this.mqttServiceMessanger.getBinder();
-    }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        String action = (intent == null) ? TaskerMqttConstants.START_SERVICE_ACTION : intent.getAction();
-        String topicFilter;
-        String clientId = null;
-        String profileName = null;
-        int qos = 0;
-        List<MqttConnectionProfileRecord> profileList = null;
-        Bundle data = (intent == null || intent.getExtras() == null) ? new Bundle() : intent.getExtras();
-        Bundle resultBundle = null;
-
-        switch(action){
-            case TaskerMqttConstants.START_SERVICE_ACTION:
-                resultBundle = new Bundle();
-                resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION, TaskerMqttConstants.START_SERVICE_ACTION);
-
-                if(!this.serviceStarted) {
-                    Log.d(TAG, "Starting the TaskerMqttService");
-
-                    resetAllClientsConnectedState();
-                    mNumConnectedProfiles = 0;
-
-                    startForeground(SERVICE_NOTIF_ID,
-                            getServiceNotification());
-
-                    registerBroadcastReceivers();
-                    this.serviceStarted = true;
-                    this.callbackToActivity(null, Status.OK, resultBundle);
-                }
-                else{
-                    this.callbackToActivity(null, Status.ERROR, resultBundle);
-                }
-                break;
-            case TaskerMqttConstants.CONNECT_ACTION:
-                profileName = data.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA, null);
-                profileList = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "profile_name = ?", profileName);
-
-                if (profileList.size() == 1) {
-                    MqttConnectOptions options = new MqttConnectOptions();
-                    MqttConnectionProfileRecord profile = profileList.get(0);
-                    options.setServerURIs(new String[]{profile.serverURI});
-                    if (profile.autoReconnect) {
-                        options.setAutomaticReconnect(true);
-                    }
-                    if (profile.cleanSession) {
-                        options.setCleanSession(true);
-                    }
-                    if (profile.username != null && !profile.username.trim().equals("")) {
-                        options.setUserName(profile.username);
-                    }
-                    if (profile.password != null && !profile.password.trim().equals("")) {
-                        options.setPassword(profile.password.toCharArray());
-                    }
-
-                    try {
-                        connect(getClient(profile.serverURI, profile.clientId), options, profileName, null);
-                    } catch (MqttException e) {
-                        e.printStackTrace();
-                    }
-                }
-                break;
-            case TaskerMqttConstants.DISCONNECT_ACTION:
-                profileName = data.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA, null);
-                profileList = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "profile_name = ?", profileName);
-
-                if (profileList.size() == 1) {
-                    MqttConnectionProfileRecord record = profileList.get(0);
-                    disconnect(getClient(record.serverURI, record.clientId), profileName, null);
-                }
-                break;
-            case TaskerMqttConstants.SUBSCRIBE_ACTION:
-                topicFilter = data.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, null);
-                qos = data.getInt(TaskerMqttConstants.QOS_EXTRA, 0);
-                profileName = data.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA, null);
-                profileList = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "profile_name = ?", profileName);
-
-                if(profileList.size() == 1 && topicFilter != null) {
-                    MqttConnectionProfileRecord record = profileList.get(0);
-                    if(isConnected(record.clientId)) {
-                        IMqttMessageListener messageListener = new MqttMessageListener(this, topicFilter, profileName);
-                        subscribe(record.clientId, topicFilter, qos, profileName, null, messageListener);
-                    }
-                }
-                break;
-            case TaskerMqttConstants.UNSUBSCRIBE_ACTION:
-                topicFilter = data.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, null);
-                profileName = data.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA, null);
-                profileList = MqttConnectionProfileRecord.find(MqttConnectionProfileRecord.class, "profile_name = ?", profileName);
-
-                if(profileList.size() == 1 && topicFilter != null) {
-                    MqttConnectionProfileRecord record = profileList.get(0);
-                    if(isConnected(record.clientId)) {
-                        unsubscribe(record.clientId, topicFilter, profileName, null);
-                    }
-                }
-                break;
-            case TaskerMqttConstants.STOP_SERVICE_ACTION:
-                this.serviceStarted = false;
-                resultBundle = new Bundle();
-                resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION, TaskerMqttConstants.STOP_SERVICE_ACTION);
-                if(this.serviceStarted) {
-                    this.callbackToActivity(null, Status.OK, resultBundle);
-                }
-                else{
-                    this.callbackToActivity(null, Status.ERROR, resultBundle);
-                }
-
-                stopForeground(true);
-                stopSelf();
-                break;
-            case TaskerMqttConstants.QUERY_SERVICE_RUNNING_ACTION:
-                resultBundle = new Bundle();
-                resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION, TaskerMqttConstants.QUERY_SERVICE_RUNNING_ACTION);
-                if(this.serviceStarted) {
-                    this.callbackToActivity(null, Status.OK, resultBundle);
-                }
-                else{
-                    this.callbackToActivity(null, Status.ERROR, resultBundle);
-                }
-                break;
-            default:
-                break;
+    private void resetAllClientsConnectedState(){
+        Iterator<MqttConnectionProfileRecord> iter = MqttSubscriptionRecord.findAll(MqttConnectionProfileRecord.class);
+        while(iter.hasNext()){
+            updateClientState(iter.next().profileName, false);
         }
-
-        return START_STICKY;
     }
 
     private Notification getServiceNotification(){
@@ -305,6 +461,54 @@ public class TaskerMqttService extends MqttService {
         Notification serviceNotification = getServiceNotification();
         NotificationManager notifManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
         notifManager.notify(SERVICE_NOTIF_ID, serviceNotification);
+    }
+
+    private void updateClientState(String profileName, boolean connected)
+    {
+        if(connected){
+            mNumConnectedProfiles++;
+            updateNotification();
+        }
+        else if(mNumConnectedProfiles > 0){
+            mNumConnectedProfiles--;
+            updateNotification();
+        }
+    }
+
+    private void dumpCallbackBundle(Bundle dataBundle){
+        if (dataBundle != null) {
+            for (String key : dataBundle.keySet()) {
+                Object value = dataBundle.get(key);
+                if(value != null) {
+                    Log.d(TAG, String.format("%s %s (%s)", key,
+                            value.toString(), value.getClass().getName()));
+                }
+            }
+        }
+    }
+
+    private boolean validateExistingProfile(String profileName){
+        if(!connections.containsKey(profileName)) {
+            Log.w(TAG, "Bundle contains an unknown profile name = " + profileName);
+            return false;
+        }
+        return true;
+    }
+
+    private boolean validateBundle(Bundle bundle, List<String> requiredKeys){
+        if(bundle == null){
+            Log.w(TAG, "Bundle was null!");
+            return false;
+        }
+
+        for(String requiredKey : requiredKeys){
+            if(!bundle.keySet().contains(requiredKey)){
+                Log.w(TAG, "Bundle missing required key " + requiredKey);
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -332,59 +536,10 @@ public class TaskerMqttService extends MqttService {
             data.putString(MqttServiceConstants.CALLBACK_ACTION, MqttServiceConstants.MESSAGE_ARRIVED_ACTION);
             data.putString(TaskerMqttConstants.TOPIC_EXTRA, topic);
             data.putString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, this.topicFilter);
-            data.putString(MqttServiceConstants.CALLBACK_INVOCATION_CONTEXT, this.profileName);
             data.putString(TaskerMqttConstants.MESSAGE_EXTRA, message.toString());
             data.putInt(TaskerMqttConstants.QOS_EXTRA, message.getQos());
-            callbackToActivity(null, Status.OK, data);
+            callbackToActivity(this.profileName, Status.OK, data);
             TaskerEventTrigger.triggerEvent(context, data);
-        }
-    }
-
-    public String getClient(String brokerUri, String clientId)
-    {
-        if(!connections.containsKey(clientId))
-        {
-            MqttConnection client = new MqttConnection(this, brokerUri,
-                    clientId);
-            connections.put(clientId, client);
-        }
-        return clientId;
-    }
-
-    @Override
-    public void unsubscribe(String clientHandle, String topic, String invocationContext, String activityToken) {
-        super.unsubscribe(clientHandle, topic, invocationContext, activityToken);
-
-        MqttSubscriptionRecord dbRecord = new MqttSubscriptionRecord(topic, invocationContext, 0);
-        dbRecord.delete();
-    }
-
-    @Override
-    public void disconnect(String clientHandle, String invocationContext, String activityToken) {
-        MqttConnection client = getConnection(clientHandle);
-        client.disconnect(invocationContext, activityToken);
-        connections.remove(clientHandle);
-    }
-
-    public void subscribe(String clientHandle, String topicFilter, int qos, String invocationContext, String activityToken, IMqttMessageListener messageListener){
-        MqttConnection client = getConnection(clientHandle);
-        client.subscribe(topicFilter, qos, invocationContext, activityToken, messageListener);
-
-        MqttSubscriptionRecord dbRecord = new MqttSubscriptionRecord(topicFilter, invocationContext, qos);
-        dbRecord.save();
-    }
-
-    private void setClientConnectedState(MqttConnectionProfileRecord record, boolean connected){
-        if(record != null){
-            record.connected = connected;
-            record.save();
-        }
-    }
-
-    private void resetAllClientsConnectedState(){
-        Iterator<MqttConnectionProfileRecord> iter = MqttSubscriptionRecord.findAll(MqttConnectionProfileRecord.class);
-        while(iter.hasNext()){
-            setClientConnectedState(iter.next(), false);
         }
     }
 }

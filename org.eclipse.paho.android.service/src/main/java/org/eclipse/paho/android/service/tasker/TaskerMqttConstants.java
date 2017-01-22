@@ -14,6 +14,11 @@ public class TaskerMqttConstants {
     public static final String SUBSCRIBE_ACTION = "subscribe";
     public static final String UNSUBSCRIBE_ACTION = "unsubscribe";
     public static final String QUERY_TOPIC_ACTION = "queryTopic";
+    public static final String QUERY_PROFILE_CONNECTED_ACTION = "queryProfileConnected";
+    public static final String PROFILE_CREATED_ACTION = "profileCreated";
+    public static final String PROFILE_DELETED_ACTION = "profileDeleted";
+    public static final String SUBSCRIPTION_CREATED_ACTION = "subscriptionCreated";
+    public static final String SUBSCRIPTION_DELETED_ACTION = "subscriptionDeleted";
     public static final String OPEN_APP_INTENT = "com.geminiapps.mqttsubscriber.OPEN_APP";
 
     // Other bundle data extras
@@ -23,6 +28,9 @@ public class TaskerMqttConstants {
     public static final String QOS_EXTRA = "qos";
     public static final String TOPIC_FILTER_EXTRA = "topicFilter";
     public static final String MESSAGE_EXTRA = "message";
+    public static final String RECONNECT_EXTRA = "reconnect";
+    public static final String CLEAN_SESSION_EXTRA = "cleanSession";
+    public static final String IS_CONNECTED_EXTRA = "isConnected";
 
     // Hard-coded client id
     public static final String TASKER_CLIENT_ID = "tasker_client";
