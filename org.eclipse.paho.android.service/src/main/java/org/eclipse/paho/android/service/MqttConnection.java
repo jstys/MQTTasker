@@ -247,7 +247,10 @@ public class MqttConnection implements MqttCallbackExtended {
 					mService.traceDebug(TAG,"Connect return:isConnecting:"+isConnecting+".disconnected:"+isConnected());
 				}else if(isConnected()){
 					mService.traceDebug(TAG,"myClient != null and the client is connected and notify!");
-					doAfterConnectSuccess(resultBundle);
+					Exception exception = new Exception("Client is already connected");
+					resultBundle.putSerializable(MqttServiceConstants.CALLBACK_EXCEPTION, exception);
+					resultBundle.putString(MqttServiceConstants.CALLBACK_ERROR_MESSAGE, exception.getLocalizedMessage());
+					mService.callbackToActivity(mProfileName, Status.ERROR, resultBundle);
 				}
 				else {					
 					mService.traceDebug(TAG, "myClient != null and the client is not connected");

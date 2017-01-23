@@ -59,45 +59,54 @@ public class TaskerMqttService extends MqttService {
         String action = (intent == null) ? TaskerMqttConstants.START_SERVICE_ACTION : intent.getAction();
         Bundle data = (intent == null || intent.getExtras() == null) ? new Bundle() : intent.getExtras();
 
-        switch(action){
-            case TaskerMqttConstants.START_SERVICE_ACTION:
-                ProcessStartServiceAction();
-                break;
-            case TaskerMqttConstants.CONNECT_ACTION:
-                ProcessConnectAction(data);
-                break;
-            case TaskerMqttConstants.DISCONNECT_ACTION:
-                ProcessDisconnectAction(data);
-                break;
-            case TaskerMqttConstants.SUBSCRIBE_ACTION:
-                ProcessSubscribeAction(data);
-                break;
-            case TaskerMqttConstants.UNSUBSCRIBE_ACTION:
-                ProcessUnsubscribeAction(data);
-                break;
-            case TaskerMqttConstants.STOP_SERVICE_ACTION:
-                ProcessStopServiceAction();
-                break;
-            case TaskerMqttConstants.QUERY_SERVICE_RUNNING_ACTION:
-                ProcessQueryServiceAction();
-                break;
-            case TaskerMqttConstants.QUERY_PROFILE_CONNECTED_ACTION:
-                ProcessQueryProfileConnectedAction(data);
-                break;
-            case TaskerMqttConstants.PROFILE_CREATED_ACTION:
-                ProcessProfileCreatedAction(data);
-                break;
-            case TaskerMqttConstants.PROFILE_DELETED_ACTION:
-                ProcessProfileDeletedAction(data);
-                break;
-            case TaskerMqttConstants.SUBSCRIPTION_CREATED_ACTION:
-                ProcessSubscriptionCreatedAction(data);
-                break;
-            case TaskerMqttConstants.SUBSCRIPTION_DELETED_ACTION:
-                ProcessSubscriptionDeletedAction(data);
-                break;
-            default:
-                break;
+        if(!action.equals(TaskerMqttConstants.START_SERVICE_ACTION) && !action.equals(TaskerMqttConstants.STOP_SERVICE_ACTION) && !mServiceStarted){
+            Bundle resultBundle = new Bundle();
+            Exception exception = new Exception("Service is not running");
+            resultBundle.putString(MqttServiceConstants.CALLBACK_ERROR_MESSAGE, exception.getLocalizedMessage());
+            resultBundle.putSerializable(MqttServiceConstants.CALLBACK_EXCEPTION, exception);
+            this.callbackToActivity(null, Status.ERROR, resultBundle);
+        }
+        else {
+            switch (action) {
+                case TaskerMqttConstants.START_SERVICE_ACTION:
+                    ProcessStartServiceAction();
+                    break;
+                case TaskerMqttConstants.CONNECT_ACTION:
+                    ProcessConnectAction(data);
+                    break;
+                case TaskerMqttConstants.DISCONNECT_ACTION:
+                    ProcessDisconnectAction(data);
+                    break;
+                case TaskerMqttConstants.SUBSCRIBE_ACTION:
+                    ProcessSubscribeAction(data);
+                    break;
+                case TaskerMqttConstants.UNSUBSCRIBE_ACTION:
+                    ProcessUnsubscribeAction(data);
+                    break;
+                case TaskerMqttConstants.STOP_SERVICE_ACTION:
+                    ProcessStopServiceAction();
+                    break;
+                case TaskerMqttConstants.QUERY_SERVICE_RUNNING_ACTION:
+                    ProcessQueryServiceAction();
+                    break;
+                case TaskerMqttConstants.QUERY_PROFILE_CONNECTED_ACTION:
+                    ProcessQueryProfileConnectedAction(data);
+                    break;
+                case TaskerMqttConstants.PROFILE_CREATED_ACTION:
+                    ProcessProfileCreatedAction(data);
+                    break;
+                case TaskerMqttConstants.PROFILE_DELETED_ACTION:
+                    ProcessProfileDeletedAction(data);
+                    break;
+                case TaskerMqttConstants.SUBSCRIPTION_CREATED_ACTION:
+                    ProcessSubscriptionCreatedAction(data);
+                    break;
+                case TaskerMqttConstants.SUBSCRIPTION_DELETED_ACTION:
+                    ProcessSubscriptionDeletedAction(data);
+                    break;
+                default:
+                    break;
+            }
         }
 
         return START_STICKY;
@@ -295,7 +304,7 @@ public class TaskerMqttService extends MqttService {
         if(!dataBundle.containsKey(TaskerMqttConstants.PROFILE_NAME_EXTRA)){
             for(String connectionKey : connections.keySet()){
                 MqttConnection connection = connections.get(connectionKey);
-                resultBundle.putBoolean(profileName, connection.isConnected());
+                resultBundle.putBoolean(connectionKey, connection.isConnected());
             }
         }
         else if(profileName != null && validateExistingProfile(profileName)){
