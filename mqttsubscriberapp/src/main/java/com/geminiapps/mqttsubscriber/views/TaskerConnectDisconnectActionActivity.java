@@ -28,6 +28,8 @@ public class TaskerConnectDisconnectActionActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        boolean autoReconnect = true;
+        boolean cleanSession = true;
         String action = "";
         String profile = "";
         Intent taskerIntent = getIntent();
@@ -40,6 +42,8 @@ public class TaskerConnectDisconnectActionActivity extends AppCompatActivity {
         if(taskerExtras != null) {
             action = taskerExtras.getString(TaskerMqttConstants.ACTION_EXTRA, "");
             profile = taskerExtras.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA, "");
+            autoReconnect = taskerExtras.getBoolean(TaskerMqttConstants.RECONNECT_EXTRA, true);
+            cleanSession = taskerExtras.getBoolean(TaskerMqttConstants.CLEAN_SESSION_EXTRA, true);
             switch (action) {
                 case TaskerMqttConstants.CONNECT_ACTION:
                     this.binding.connectRadioButton.setChecked(true);
@@ -49,6 +53,8 @@ public class TaskerConnectDisconnectActionActivity extends AppCompatActivity {
                     break;
             }
         }
+        this.binding.autoReconnectCheckbox.setChecked(autoReconnect);
+        this.binding.cleanSessionCheckbox.setChecked(cleanSession);
 
         this.loadSpinnerValues(profile);
     }
@@ -89,5 +95,13 @@ public class TaskerConnectDisconnectActionActivity extends AppCompatActivity {
 
     public boolean isConnectAction(){
         return this.binding.connectRadioButton.isChecked();
+    }
+
+    public boolean isAutoReconnectEnabled(){
+        return this.binding.autoReconnectCheckbox.isChecked();
+    }
+
+    public boolean isCleanSessionEnabled(){
+        return this.binding.cleanSessionCheckbox.isChecked();
     }
 }

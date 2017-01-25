@@ -26,17 +26,18 @@ public class TaskerViewModel {
     public void saveConnectionActionSettings(){
         Intent resultIntent = new Intent();
         Bundle resultBundle = new Bundle();
-        String profileName = ((TaskerConnectDisconnectActionActivity)this.context).getSelectedProfileName();
-        boolean connect = ((TaskerConnectDisconnectActionActivity)this.context).isConnectAction();
+        TaskerConnectDisconnectActionActivity activity = ((TaskerConnectDisconnectActionActivity)this.context);
+        String profileName = activity.getSelectedProfileName();
+        boolean connect = activity.isConnectAction();
+        boolean autoReconnect = activity.isAutoReconnectEnabled();
+        boolean cleanSession = activity.isCleanSessionEnabled();
 
         if(profileName != null) {
             String action = connect ? TaskerMqttConstants.CONNECT_ACTION : TaskerMqttConstants.DISCONNECT_ACTION;
             resultBundle.putString(TaskerMqttConstants.ACTION_EXTRA, action);
             resultBundle.putString(TaskerMqttConstants.PROFILE_NAME_EXTRA, profileName);
-
-            //TODO: populate with real values
-            resultBundle.putBoolean(TaskerMqttConstants.RECONNECT_EXTRA, false);
-            resultBundle.putBoolean(TaskerMqttConstants.CLEAN_SESSION_EXTRA, true);
+            resultBundle.putBoolean(TaskerMqttConstants.RECONNECT_EXTRA, autoReconnect);
+            resultBundle.putBoolean(TaskerMqttConstants.CLEAN_SESSION_EXTRA, cleanSession);
 
             resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BUNDLE", resultBundle);
             resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BLURB", profileName);

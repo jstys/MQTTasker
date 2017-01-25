@@ -169,8 +169,8 @@ public class TaskerMqttService extends MqttService {
             return;
         }
 
-        boolean autoReconnect = dataBundle.getBoolean(TaskerMqttConstants.RECONNECT_EXTRA);
-        boolean cleanSession = dataBundle.getBoolean(TaskerMqttConstants.CLEAN_SESSION_EXTRA);
+        boolean autoReconnect = dataBundle.getBoolean(TaskerMqttConstants.RECONNECT_EXTRA, true);
+        boolean cleanSession = dataBundle.getBoolean(TaskerMqttConstants.CLEAN_SESSION_EXTRA, true);
 
         Log.d(TAG, "Received the Connect action for profile " + profileName + " with autoReconnect = " + autoReconnect + " and cleanSession = " + cleanSession);
 
@@ -178,12 +178,9 @@ public class TaskerMqttService extends MqttService {
         MqttConnectOptions options = profile.getConnectOptions();
 
         options.setServerURIs(new String[]{profile.getServerURI()});
-        if (autoReconnect) {
-            options.setAutomaticReconnect(true);
-        }
-        if (cleanSession) {
-            options.setCleanSession(true);
-        }
+        options.setAutomaticReconnect(autoReconnect);
+        options.setCleanSession(cleanSession);
+        Log.d(TAG, "Setting connection options to autoReconnect = " + autoReconnect + " cleanSession = " + cleanSession);
 
         try {
             connect(profileName, null, null, null);
