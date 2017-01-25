@@ -1,24 +1,34 @@
 package com.geminiapps.mqttsubscriber.views;
 
 import android.content.Intent;
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 
+import com.geminiapps.mqttsubscriber.R;
+import com.geminiapps.mqttsubscriber.databinding.ActivityTaskerMessageEventBinding;
 import com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel;
 import com.geminiapps.mqttsubscriber.models.MqttSubscriptionModel;
 import com.geminiapps.mqttsubscriber.tasker.TaskerBroadcastReceiver;
 import com.geminiapps.mqttsubscriber.viewmodels.TaskerViewModel;
 
+import org.eclipse.paho.android.service.tasker.TaskerMqttConstants;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class TaskerMessageEventActivity extends AppCompatActivity {
+public class TaskerMessageEventActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+
+    private static final String ANY_SUBSCRIBED_TOPIC = "<Any>";
 
     private TaskerViewModel mViewModel;
-    //private ActivityTaskerMessageEventBinding mBinding;
+    private ActivityTaskerMessageEventBinding mBinding;
     private List<String> mProfileNames;
     private List<String> mTopicNames;
+    ArrayAdapter<String> mSubscriptionAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,27 +36,31 @@ public class TaskerMessageEventActivity extends AppCompatActivity {
 
         Intent taskerIntent = getIntent();
         Bundle taskerExtras = taskerIntent.getBundleExtra(TaskerBroadcastReceiver.TASKER_DATA_BUNDLE);
+        String selectedProfile = null;
+        String selectedTopic = ANY_SUBSCRIBED_TOPIC;
 
         mProfileNames = new ArrayList<>();
         mTopicNames = new ArrayList<>();
         mViewModel = new TaskerViewModel(this);
-        //mBinding = DataBindingUtil.setContentView(this, R.layout.);
-        //mBinding.setViewModel(mViewModel);
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_tasker_message_event);
+        mBinding.setViewModel(mViewModel);
 
         if(taskerExtras != null) {
-
+            selectedProfile = taskerExtras.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA);
+            selectedTopic = taskerExtras.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, ANY_SUBSCRIBED_TOPIC);
         }
 
-        //loadSpinnerValues();
+        mBinding.profileSpinner.setOnItemSelectedListener(this);
+
+        loadSpinnerValues(selectedProfile, selectedTopic);
     }
 
     private void loadSpinnerValues(String selectedProfile, String selectedSubscription){
         List<MqttConnectionProfileModel> profiles = MqttConnectionProfileModel.findAll();
-        List<MqttSubscriptionModel> subscriptions = MqttSubscriptionModel.findAll();
         int selectedProfileIndex = -1;
         int selectedSubscriptionIndex = 0;
 
-        mTopicNames.add("<Any>");
+        mTopicNames.add(ANY_SUBSCRIBED_TOPIC);
 
         for(int i = 0; i < profiles.size(); i++){
             MqttConnectionProfileModel profile = profiles.get(i);
@@ -55,32 +69,50 @@ public class TaskerMessageEventActivity extends AppCompatActivity {
                 selectedProfileIndex = i;
             }
         }
-
-        for(int i = 0; i < subscriptions.size(); i++){
-            MqttSubscriptionModel subscription = subscriptions.get(i);
-            mTopicNames.add(subscription.getTopic());
-            if(subscription.getProfileName().equals(selectedProfile) && subscription.getTopic().equals(selectedSubscription)){
-                selectedSubscriptionIndex = i;
-            }
+        if(selectedProfileIndex < 0){
+            selectedProfileIndex = 0;
         }
 
         // TODO: improve the view to be non-generic
         ArrayAdapter<String> profileAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, mProfileNames);
-        ArrayAdapter<String> subscriptionAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, new ArrayList<String>());
+        mSubscriptionAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, mTopicNames);
 
         profileAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        subscriptionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mSubscriptionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-//        mBinding.profileSpinner.setAdapter(profileAdapter);
-//        mBinding.subscriptionSpinner.setAdapter(subscriptionAdapter);
-//
-//        if(selectedProfileIndex >= 0)
-//        {
-//            this.binding.profileSpinner.setSelection(selectedProfileIndex);
-//        }
-//
+        loadSubscriptionsForProfile(mProfileNames.get(selectedProfileIndex));
+
+        mBinding.profileSpinner.setAdapter(profileAdapter);
+        mBinding.subscriptionSpinner.setAdapter(mSubscriptionAdapter);
+
+        mBinding.profileSpinner.setSelection(selectedProfileIndex);
+
+        //TODO: fix this
 //        if(selectedSubscriptionIndex > 0){
 //            this.binding.subscriptionSpinner.setSelected(selectedSubscriptionIndex);
 //        }
+    }
+
+    private void loadSubscriptionsForProfile(String profileName){
+        List<MqttSubscriptionModel> subscriptions = MqttSubscriptionModel.findAllForProfile(profileName);
+
+        mTopicNames.clear();
+
+        mTopicNames.add(ANY_SUBSCRIBED_TOPIC);
+        for(int i = 0; i < subscriptions.size(); i++){
+            MqttSubscriptionModel subscription = subscriptions.get(i);
+            mTopicNames.add(subscription.getTopic());
+        }
+        mSubscriptionAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        loadSubscriptionsForProfile(mProfileNames.get(position));
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
     }
 }

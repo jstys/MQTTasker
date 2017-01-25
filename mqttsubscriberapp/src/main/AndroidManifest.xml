@@ -52,6 +52,18 @@
                 <action android:name="com.twofortyfouram.locale.intent.action.EDIT_SETTING" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".views.TaskerMessageEventActivity"
+            android:exported="true"
+            android:icon="@android:drawable/gallery_thumb"
+            android:label="Message"
+            android:uiOptions="splitActionBarWhenNarrow"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="ExportedActivity">
+            <intent-filter>
+                <action android:name="net.dinglisch.android.tasker.ACTION_EDIT_EVENT" />
+            </intent-filter>
+        </activity>
 
         <!-- Tasker broadcast receiver ! -->
         <receiver
@@ -61,6 +73,7 @@
             tools:ignore="ExportedReceiver">
             <intent-filter>
                 <action android:name="com.twofortyfouram.locale.intent.action.FIRE_SETTING" />
+                <action android:name="com.twofortyfouram.locale.intent.action.QUERY_CONDITION" />
                 <action android:name="com.geminiapps.mqttsubscriber.OPEN_APP" />
             </intent-filter>
         </receiver>
@@ -71,7 +84,6 @@
             android:process=":org.eclipse.paho.android.service.TaskerMqttService" />
 
         <activity android:name=".views.ConnectionDetailActivity" />
-        <activity android:name=".views.TaskerMessageEventActivity"></activity>
     </application>
 
 </manifest>
