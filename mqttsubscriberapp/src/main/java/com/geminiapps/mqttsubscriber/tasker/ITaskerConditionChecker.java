@@ -8,5 +8,5 @@ import android.os.Bundle;
  */
 
 public interface ITaskerConditionChecker {
-    public void checkCondition(Context context, Bundle data);
+    void checkCondition(Context context, Bundle data, int messageId);
 }

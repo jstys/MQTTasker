@@ -10,6 +10,7 @@ import com.android.databinding.library.baseAdapters.BR;
 import org.eclipse.paho.android.service.MqttSubscriptionRecord;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -98,13 +99,24 @@ public class MqttSubscriptionModel extends BaseObservable implements Parcelable 
         return null;
     }
 
-    public static List<MqttSubscriptionModel> findAll(String profileName)
+    public static List<MqttSubscriptionModel> findAllForProfile(String profileName)
     {
         List<MqttSubscriptionModel> models = new ArrayList<>();
         List<MqttSubscriptionRecord> dbRecords = MqttSubscriptionRecord.find(MqttSubscriptionRecord.class, "profile_name = ?", profileName);
         for(MqttSubscriptionRecord dbRecord : dbRecords)
         {
             models.add(new MqttSubscriptionModel(dbRecord.topic, profileName, dbRecord.qos));
+        }
+        return models;
+    }
+
+    public static List<MqttSubscriptionModel> findAll(){
+        List<MqttSubscriptionModel> models = new ArrayList<>();
+        Iterator<MqttSubscriptionRecord> dbRecords = MqttSubscriptionRecord.findAll(MqttSubscriptionRecord.class);
+        while(dbRecords.hasNext())
+        {
+            MqttSubscriptionRecord dbRecord = dbRecords.next();
+            models.add(new MqttSubscriptionModel(dbRecord.topic, dbRecord.profileName, dbRecord.qos));
         }
         return models;
     }

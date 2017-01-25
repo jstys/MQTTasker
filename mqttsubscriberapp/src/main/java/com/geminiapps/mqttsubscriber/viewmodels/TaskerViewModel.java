@@ -59,4 +59,14 @@ public class TaskerViewModel {
         this.context.setResult(RESULT_OK, resultIntent);
         this.context.finish();
     }
+
+    public void saveMessageEventSettings(){
+        Intent resultIntent = new Intent();
+        Bundle resultBundle = new Bundle();
+
+
+
+        this.context.setResult(RESULT_OK, resultIntent);
+        this.context.finish();
+    }
 }

@@ -11,6 +11,8 @@ public class TaskerBroadcastReceiver extends BroadcastReceiver {
     public static final String ACTION_INTENT = "com.twofortyfouram.locale.intent.action.FIRE_SETTING";
     public static final String CONDITION_INTENT = "com.twofortyfouram.locale.intent.action.QUERY_CONDITION";
     public static final String TASKER_DATA_BUNDLE = "com.twofortyfouram.locale.intent.extra.BUNDLE";
+    public static final int TASKER_RESULT_CONDITION_SATISFIED = 16;
+    public static final int TASKER_RESULT_CONDITION_UNSATISFIED = 17;
 
     protected ITaskerActionRunner actionRunner;
     protected ITaskerConditionChecker conditionChecker;
@@ -35,7 +37,7 @@ public class TaskerBroadcastReceiver extends BroadcastReceiver {
             int messageId = TaskerPlugin.Event.retrievePassThroughMessageID(intent);
             Bundle passthroughData = TaskerPlugin.Event.retrievePassThroughData(intent);
             // Tasker condition check triggered
-            this.conditionChecker.checkCondition(context, bundle);
+            this.conditionChecker.checkCondition(context, bundle, messageId);
         }
     }
 }

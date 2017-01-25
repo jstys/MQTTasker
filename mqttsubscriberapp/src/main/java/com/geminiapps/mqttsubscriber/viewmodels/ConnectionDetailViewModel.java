@@ -61,7 +61,7 @@ public class ConnectionDetailViewModel extends MqttServiceListener implements Ad
 
     public void onStart(){
         mReceiver.register();
-        for(MqttSubscriptionModel subscription : MqttSubscriptionModel.findAll(mModel.getProfileName())){
+        for(MqttSubscriptionModel subscription : MqttSubscriptionModel.findAllForProfile(mModel.getProfileName())){
             addOrUpdateSubscription(subscription);
         }
 
