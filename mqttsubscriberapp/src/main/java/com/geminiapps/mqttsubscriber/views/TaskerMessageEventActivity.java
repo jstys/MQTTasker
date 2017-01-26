@@ -22,7 +22,7 @@ import java.util.List;
 
 public class TaskerMessageEventActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
-    private static final String ANY_SUBSCRIBED_TOPIC = "<Any>";
+    public static final String ANY_SUBSCRIBED_TOPIC = "<Any>";
 
     private TaskerViewModel mViewModel;
     private ActivityTaskerMessageEventBinding mBinding;
@@ -121,5 +121,13 @@ public class TaskerMessageEventActivity extends AppCompatActivity implements Ada
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
 
+    }
+
+    public String getSelectedProfile(){
+        return (String)mBinding.profileSpinner.getSelectedItem();
+    }
+
+    public String getSelectedSubscription(){
+        return (String)mBinding.subscriptionSpinner.getSelectedItem();
     }
 }

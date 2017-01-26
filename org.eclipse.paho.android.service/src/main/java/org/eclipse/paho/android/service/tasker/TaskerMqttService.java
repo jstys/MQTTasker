@@ -540,6 +540,7 @@ public class TaskerMqttService extends MqttService {
         public void messageArrived(String topic, MqttMessage message) throws Exception {
             Bundle data = new Bundle();
             data.putString(MqttServiceConstants.CALLBACK_ACTION, MqttServiceConstants.MESSAGE_ARRIVED_ACTION);
+            data.putString(TaskerMqttConstants.PROFILE_NAME_EXTRA, this.profileName);
             data.putString(TaskerMqttConstants.TOPIC_EXTRA, topic);
             data.putString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, this.topicFilter);
             data.putString(TaskerMqttConstants.MESSAGE_EXTRA, message.toString());

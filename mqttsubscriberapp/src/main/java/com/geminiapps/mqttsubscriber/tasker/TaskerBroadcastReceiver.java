@@ -16,6 +16,7 @@ public class TaskerBroadcastReceiver extends BroadcastReceiver {
 
     protected ITaskerActionRunner actionRunner;
     protected ITaskerConditionChecker conditionChecker;
+    protected Intent mLastReceivedIntent;
 
     // Default constructor allows instantiation directly from AndroidManifest
     // (used here to start the MqttService since it won't have its own broadcast receiver listening)
@@ -26,6 +27,7 @@ public class TaskerBroadcastReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
 
         final Bundle bundle = intent.getBundleExtra(TASKER_DATA_BUNDLE);
+        mLastReceivedIntent = intent;
 
         if(ACTION_INTENT.equals(intent.getAction()) && this.actionRunner != null)
         {

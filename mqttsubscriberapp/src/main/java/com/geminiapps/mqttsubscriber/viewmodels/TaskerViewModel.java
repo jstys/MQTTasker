@@ -6,10 +6,12 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 import com.geminiapps.mqttsubscriber.views.TaskerConnectDisconnectActionActivity;
+import com.geminiapps.mqttsubscriber.views.TaskerMessageEventActivity;
 import com.geminiapps.mqttsubscriber.views.TaskerStartStopServiceActivity;
 
 import org.eclipse.paho.android.service.MqttServiceConstants;
 import org.eclipse.paho.android.service.tasker.TaskerMqttConstants;
+import org.eclipse.paho.android.service.tasker.TaskerPlugin;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -64,15 +66,26 @@ public class TaskerViewModel {
         Intent resultIntent = new Intent();
         Bundle resultBundle = new Bundle();
 
+        TaskerMessageEventActivity activity = (TaskerMessageEventActivity)this.context;
+        String selectedProfile = activity.getSelectedProfile();
+        String selectedSubscription = activity.getSelectedSubscription();
 
-        //TODO: add the actual profile and topic filter selected
-        if(false) {
-            resultBundle.putString(TaskerMqttConstants.TASKER_PROFILE_NAME, "test");
+        resultBundle.putString(TaskerMqttConstants.TASKER_PROFILE_NAME, selectedProfile);
+        if(!selectedSubscription.equals(TaskerMessageEventActivity.ANY_SUBSCRIBED_TOPIC)) {
+            resultBundle.putString(TaskerMqttConstants.TASKER_TOPIC_FILTER, selectedSubscription);
         }
         resultBundle.putString(TaskerMqttConstants.ACTION_EXTRA, MqttServiceConstants.MESSAGE_ARRIVED_ACTION);
-        resultBundle.putString(TaskerMqttConstants.TASKER_TOPIC_FILTER, "tasker/#");
         resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BUNDLE", resultBundle);
         resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BLURB", "Message Arrived");
+
+        if ( TaskerPlugin.hostSupportsRelevantVariables( this.context.getIntent().getExtras() ) )
+            TaskerPlugin.addRelevantVariableList( resultIntent, new String [] {
+                    "%topic\nTopic\nThe full topic name that the message was published to",
+                    "%topic_filter\nTopic Filter\nThe subscription that triggered the arrival of the incoming message",
+                    "%profile\nProfile\nThe profile name that the message arrived for",
+                    "%message\nMessage\nThe message contents formatted as a string",
+                    "%qos\nQOS\nThe qos value of the incoming message (Depends on subscription qos, too)"
+            } );
 
         this.context.setResult(RESULT_OK, resultIntent);
     }

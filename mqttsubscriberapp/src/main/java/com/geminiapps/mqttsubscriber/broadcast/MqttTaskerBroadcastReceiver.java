@@ -17,6 +17,7 @@ import org.eclipse.paho.android.service.tasker.TaskerPlugin;
  */
 
 public class MqttTaskerBroadcastReceiver extends TaskerBroadcastReceiver implements ITaskerConditionChecker {
+
     @Override
     public void onReceive(Context context, Intent intent) {
         this.actionRunner = new MqttServiceSender(context);
@@ -48,11 +49,21 @@ public class MqttTaskerBroadcastReceiver extends TaskerBroadcastReceiver impleme
         String topicFilter = data.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA);
         String taskerTopicFilter = data.getString(TaskerMqttConstants.TASKER_TOPIC_FILTER);
         String taskerProfileName = data.getString(TaskerMqttConstants.TASKER_PROFILE_NAME);
-        String profileName = data.getString(MqttServiceConstants.CALLBACK_INVOCATION_CONTEXT);
+        String profileName = data.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA);
         String message = data.getString(TaskerMqttConstants.MESSAGE_EXTRA);
         int qos = data.getInt(TaskerMqttConstants.QOS_EXTRA);
 
-        if((taskerProfileName == null || taskerProfileName.equals(profileName)) && (taskerTopicFilter == null || taskerTopicFilter.equals(topicFilter))){
+        if((taskerProfileName != null && taskerProfileName.equals(profileName)) && (taskerTopicFilter == null || taskerTopicFilter.equals(topicFilter))){
+            if ( TaskerPlugin.Condition.hostSupportsVariableReturn( mLastReceivedIntent.getExtras() ) ) {
+                Bundle varsBundle = new Bundle();
+                varsBundle.putString("%topic", topic);
+                varsBundle.putString("%topic_filter", topicFilter);
+                varsBundle.putString("%profile", profileName);
+                varsBundle.putString("%message", message);
+                varsBundle.putString("%qos", Integer.toString(qos));
+
+                TaskerPlugin.addVariableBundle( getResultExtras( true ), varsBundle );
+            }
             setResultCode(TASKER_RESULT_CONDITION_SATISFIED);
         }
         else{
