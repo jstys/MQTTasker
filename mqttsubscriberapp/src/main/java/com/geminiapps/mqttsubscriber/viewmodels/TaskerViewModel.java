@@ -8,6 +8,7 @@ import android.widget.Toast;
 import com.geminiapps.mqttsubscriber.views.TaskerConnectDisconnectActionActivity;
 import com.geminiapps.mqttsubscriber.views.TaskerStartStopServiceActivity;
 
+import org.eclipse.paho.android.service.MqttServiceConstants;
 import org.eclipse.paho.android.service.tasker.TaskerMqttConstants;
 
 import static android.app.Activity.RESULT_OK;
@@ -43,7 +44,6 @@ public class TaskerViewModel {
             resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BLURB", profileName);
             this.context.setResult(RESULT_OK, resultIntent);
         }
-        this.context.finish();
     }
 
     public void saveServiceActionSettings(){
@@ -58,7 +58,6 @@ public class TaskerViewModel {
         resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BUNDLE", resultBundle);
         resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BLURB", blurb);
         this.context.setResult(RESULT_OK, resultIntent);
-        this.context.finish();
     }
 
     public void saveMessageEventSettings(){
@@ -66,8 +65,15 @@ public class TaskerViewModel {
         Bundle resultBundle = new Bundle();
 
 
+        //TODO: add the actual profile and topic filter selected
+        if(false) {
+            resultBundle.putString(TaskerMqttConstants.TASKER_PROFILE_NAME, "test");
+        }
+        resultBundle.putString(TaskerMqttConstants.ACTION_EXTRA, MqttServiceConstants.MESSAGE_ARRIVED_ACTION);
+        resultBundle.putString(TaskerMqttConstants.TASKER_TOPIC_FILTER, "tasker/#");
+        resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BUNDLE", resultBundle);
+        resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BLURB", "Message Arrived");
 
         this.context.setResult(RESULT_OK, resultIntent);
-        this.context.finish();
     }
 }

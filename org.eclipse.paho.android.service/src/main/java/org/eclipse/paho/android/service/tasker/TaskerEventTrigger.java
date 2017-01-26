@@ -9,13 +9,16 @@ import android.os.Bundle;
  */
 
 public class TaskerEventTrigger {
-    private static final String EVENT_INTENT = "com.twofortyfouram.locale.intent.action.REQUEST_QUERY";
+    private static final String EVENT_INTENT =
+            "com.twofortyfouram.locale.intent.action.REQUEST_QUERY";
 
     public static void triggerEvent(Context context, Bundle data)
     {
         Intent eventIntent = new Intent(EVENT_INTENT);
         TaskerPlugin.Event.addPassThroughMessageID(eventIntent);
         TaskerPlugin.Event.addPassThroughData(eventIntent, data);
+        //TODO: make the activity name configurable
+        eventIntent.putExtra("com.twofortyfouram.locale.intent.extra.ACTIVITY", "com.geminiapps.mqttsubscriber.views.TaskerMessageEventActivity");
         context.sendBroadcast(eventIntent);
     }
 }

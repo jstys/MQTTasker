@@ -36,7 +36,7 @@ public class TaskerBroadcastReceiver extends BroadcastReceiver {
         {
             int messageId = TaskerPlugin.Event.retrievePassThroughMessageID(intent);
             Bundle passthroughData = TaskerPlugin.Event.retrievePassThroughData(intent);
-            // Tasker condition check triggered
+            bundle.putAll(passthroughData);
             this.conditionChecker.checkCondition(context, bundle, messageId);
         }
     }

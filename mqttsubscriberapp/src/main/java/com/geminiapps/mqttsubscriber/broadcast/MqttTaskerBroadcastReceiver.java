@@ -28,16 +28,11 @@ public class MqttTaskerBroadcastReceiver extends TaskerBroadcastReceiver impleme
             appIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(appIntent);
         }
-
-        if(isOrderedBroadcast()){
-            // TODO: return pending and asynchronously send actual result
-            setResultCode(TaskerPlugin.Setting.RESULT_CODE_OK);
-        }
     }
 
     @Override
     public void checkCondition(Context context, Bundle data, int messageId) {
-        String action = data.getString(MqttServiceConstants.CALLBACK_ACTION, "");
+        String action = data.getString(TaskerMqttConstants.ACTION_EXTRA, "");
         switch(action){
             case MqttServiceConstants.MESSAGE_ARRIVED_ACTION:
                 onTaskerMessageArrived(context, data);

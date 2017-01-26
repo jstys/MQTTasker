@@ -55,6 +55,13 @@ public class TaskerMessageEventActivity extends AppCompatActivity implements Ada
         loadSpinnerValues(selectedProfile, selectedTopic);
     }
 
+    @Override
+    public void finish() {
+        this.mViewModel.saveMessageEventSettings();
+
+        super.finish();
+    }
+
     private void loadSpinnerValues(String selectedProfile, String selectedSubscription){
         List<MqttConnectionProfileModel> profiles = MqttConnectionProfileModel.findAll();
         int selectedProfileIndex = -1;
