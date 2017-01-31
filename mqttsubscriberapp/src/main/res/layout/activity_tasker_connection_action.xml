@@ -31,19 +31,6 @@
             android:gravity="center_vertical"
             android:layout_alignParentTop="true" />
 
-        <Button
-            android:text="Accept"
-            android:id="@+id/save_connection_action_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:onClick="@{()->viewModel.saveConnectionActionSettings()}"
-            style="@style/Widget.AppCompat.Button.Borderless.Colored" />
-
         <RadioGroup
             android:id="@+id/connect_disconnect_radiogroup"
             android:layout_width="match_parent"

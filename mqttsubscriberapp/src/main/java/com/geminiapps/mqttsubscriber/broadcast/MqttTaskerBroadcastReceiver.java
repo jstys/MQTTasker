@@ -20,6 +20,7 @@ public class MqttTaskerBroadcastReceiver extends TaskerBroadcastReceiver impleme
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        //android.os.Debug.waitForDebugger();
         this.actionRunner = new MqttServiceSender(context);
         this.conditionChecker = this;
         super.onReceive(context, intent);
@@ -45,12 +46,19 @@ public class MqttTaskerBroadcastReceiver extends TaskerBroadcastReceiver impleme
     }
 
     private void onTaskerMessageArrived(Context context, Bundle data){
+        if(data == null){
+            setResultCode(TASKER_RESULT_CONDITION_UNSATISFIED);
+            return;
+        }
+
         String topic = data.getString(TaskerMqttConstants.TOPIC_EXTRA);
         String topicFilter = data.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA);
         String taskerTopicFilter = data.getString(TaskerMqttConstants.TASKER_TOPIC_FILTER);
         String taskerProfileName = data.getString(TaskerMqttConstants.TASKER_PROFILE_NAME);
         String profileName = data.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA);
         String message = data.getString(TaskerMqttConstants.MESSAGE_EXTRA);
+        boolean isDuplicate = data.getBoolean(TaskerMqttConstants.DUPLICATE_EXTRA);
+        boolean isRetained = data.getBoolean(TaskerMqttConstants.RETAINED_EXTRA);
         int qos = data.getInt(TaskerMqttConstants.QOS_EXTRA);
 
         if((taskerProfileName != null && taskerProfileName.equals(profileName)) && (taskerTopicFilter == null || taskerTopicFilter.equals(topicFilter))){
@@ -61,6 +69,8 @@ public class MqttTaskerBroadcastReceiver extends TaskerBroadcastReceiver impleme
                 varsBundle.putString("%profile", profileName);
                 varsBundle.putString("%message", message);
                 varsBundle.putString("%qos", Integer.toString(qos));
+                varsBundle.putString("%duplicate", String.valueOf(isDuplicate));
+                varsBundle.putString("%retained", String.valueOf(isRetained));
 
                 TaskerPlugin.addVariableBundle( getResultExtras( true ), varsBundle );
             }

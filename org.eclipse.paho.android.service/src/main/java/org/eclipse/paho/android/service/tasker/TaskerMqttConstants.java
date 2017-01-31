@@ -30,9 +30,11 @@ public class TaskerMqttConstants {
     public static final String MESSAGE_EXTRA = "message";
     public static final String RECONNECT_EXTRA = "reconnect";
     public static final String CLEAN_SESSION_EXTRA = "cleanSession";
-    public static final String IS_CONNECTED_EXTRA = "isConnected";
+    public static final String DUPLICATE_EXTRA = "isDuplicate";
+    public static final String RETAINED_EXTRA = "isRetained";
     public static final String TASKER_TOPIC_FILTER = "taskerTopicFilter";
     public static final String TASKER_PROFILE_NAME = "taskerProfileName";
+    public static final String TASKER_SAVED_SETTING_INTENT = "settingIntent";
 
     // Hard-coded client id
     public static final String TASKER_CLIENT_ID = "tasker_client";

@@ -279,7 +279,7 @@ public class TaskerPlugin {
          *  @see #signalFinish(Context, Intent, int, Bundle)
          *  @see Host#addCompletionIntent(Intent, Intent)
          */
-        private final static String 	EXTRA_PLUGIN_COMPLETION_INTENT = EXTRAS_PREFIX + "COMPLETION_INTENT";
+        public final static String 	EXTRA_PLUGIN_COMPLETION_INTENT = EXTRAS_PREFIX + "COMPLETION_INTENT";
 
         /**
          *  @see #signalFinish(Context, Intent, int, Bundle)

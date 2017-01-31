@@ -28,17 +28,5 @@
                 android:padding="10dp" />
         </RadioGroup>
 
-        <Button
-            android:text="Accept"
-            android:id="@+id/save_service_action_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:onClick="@{()->viewModel.saveServiceActionSettings()}"
-            style="@style/Widget.AppCompat.Button.Borderless.Colored" />
     </RelativeLayout>
 </layout>

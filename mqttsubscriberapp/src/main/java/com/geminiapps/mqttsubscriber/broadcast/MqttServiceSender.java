@@ -12,6 +12,7 @@ import org.eclipse.paho.android.service.MqttConnectionProfileRecord;
 import org.eclipse.paho.android.service.MqttSubscriptionRecord;
 import org.eclipse.paho.android.service.tasker.TaskerMqttConstants;
 import org.eclipse.paho.android.service.tasker.TaskerMqttService;
+import org.eclipse.paho.android.service.tasker.TaskerPlugin;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 
 import java.util.List;
@@ -150,16 +151,27 @@ public class MqttServiceSender implements ITaskerActionRunner, MqttSubscriptionR
     }
 
     @Override
-    public void runAction(Context context, Bundle data) {
+    public int runAction(Context context, Bundle data, boolean isOrderedBroadcast, Intent settingIntent) {
         String action = data.getString(TaskerMqttConstants.ACTION_EXTRA, "");
         if(data.containsKey(TaskerMqttConstants.ACTION_EXTRA)){
             data.remove(TaskerMqttConstants.ACTION_EXTRA);
         }
 
-        Intent serviceIntent = new Intent(this.context, TaskerMqttService.class);
+        String completionExtra = settingIntent.getStringExtra(TaskerPlugin.Setting.EXTRA_PLUGIN_COMPLETION_INTENT);
+        Intent clonedIntent = settingIntent.cloneFilter();
+        clonedIntent.putExtra(TaskerPlugin.Setting.EXTRA_PLUGIN_COMPLETION_INTENT, completionExtra);
+
+        data.putParcelable(TaskerMqttConstants.TASKER_SAVED_SETTING_INTENT, clonedIntent);
+
+        Intent serviceIntent = new Intent(context, TaskerMqttService.class);
         serviceIntent.setAction(action);
         serviceIntent.putExtras(data);
         sendMqttServiceAction(serviceIntent);
+
+        if(isOrderedBroadcast && action.equals(TaskerMqttConstants.CONNECT_ACTION)){
+            return TaskerPlugin.Setting.RESULT_CODE_PENDING;
+        }
+        return TaskerPlugin.Setting.RESULT_CODE_OK;
     }
 
     @Override

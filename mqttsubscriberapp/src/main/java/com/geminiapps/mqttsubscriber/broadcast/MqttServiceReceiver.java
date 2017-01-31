@@ -90,7 +90,7 @@ public class MqttServiceReceiver extends BroadcastReceiver {
                             this.listener.onClientSubscribeResponse(profileName, topicFilter, status);
                             break;
                         case MqttServiceConstants.MESSAGE_ARRIVED_ACTION:
-                            this.listener.onMessageArrived(profileName, topicFilter, topic, message.toString(), qos);
+                            this.listener.onMessageArrived(profileName, topicFilter, topic, message, qos);
                             break;
                         case TaskerMqttConstants.QUERY_PROFILE_CONNECTED_ACTION:
                             this.listener.onQueryProfileConnectedResponse(resultBundle);

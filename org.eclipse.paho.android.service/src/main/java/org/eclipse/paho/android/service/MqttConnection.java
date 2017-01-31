@@ -327,7 +327,9 @@ public class MqttConnection implements MqttCallbackExtended {
 					msgArrived.getTopic(), msgArrived.getMessage());
 			resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION,
 					MqttServiceConstants.MESSAGE_ARRIVED_ACTION);
-			mService.callbackToActivity(mProfileName, Status.OK, resultBundle);
+
+			//TODO: figure out what to do with the backlog
+			//mService.callbackToActivity(mProfileName, Status.OK, resultBundle);
 		}
 	}
 
@@ -346,8 +348,19 @@ public class MqttConnection implements MqttCallbackExtended {
 	private Bundle messageToBundle(String messageId, String topic,
 			MqttMessage message) {
 		Bundle result = new Bundle();
+		result.putString(MqttServiceConstants.CALLBACK_ACTION, MqttServiceConstants.MESSAGE_ARRIVED_ACTION);
+		result.putString(TaskerMqttConstants.PROFILE_NAME_EXTRA, mProfileName);
+		result.putString(TaskerMqttConstants.TOPIC_EXTRA, topic);
+
+		//TODO: see if we can extend the MessageStore to include matched topic filter
+		//result.putString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, );
+
+		result.putString(TaskerMqttConstants.MESSAGE_EXTRA, message.toString());
+		result.putInt(TaskerMqttConstants.QOS_EXTRA, message.getQos());
+		result.putBoolean(TaskerMqttConstants.DUPLICATE_EXTRA, message.isDuplicate());
+		result.putBoolean(TaskerMqttConstants.RETAINED_EXTRA, message.isRetained());
+
 		result.putString(MqttServiceConstants.CALLBACK_MESSAGE_ID, messageId);
-		result.putString(MqttServiceConstants.CALLBACK_DESTINATION_NAME, topic);
 		result.putParcelable(MqttServiceConstants.CALLBACK_MESSAGE_PARCEL,
 				new ParcelableMqttMessage(message));
 		return result;

@@ -37,13 +37,20 @@ public class TaskerViewModel {
 
         if(profileName != null) {
             String action = connect ? TaskerMqttConstants.CONNECT_ACTION : TaskerMqttConstants.DISCONNECT_ACTION;
+            if(connect){
+                if (TaskerPlugin.Setting.hostSupportsSynchronousExecution( this.context.getIntent().getExtras()))
+                    //TODO: figure out what the connect timeout should be
+                    TaskerPlugin.Setting.requestTimeoutMS( resultIntent, 10000 );
+            }
             resultBundle.putString(TaskerMqttConstants.ACTION_EXTRA, action);
             resultBundle.putString(TaskerMqttConstants.PROFILE_NAME_EXTRA, profileName);
             resultBundle.putBoolean(TaskerMqttConstants.RECONNECT_EXTRA, autoReconnect);
             resultBundle.putBoolean(TaskerMqttConstants.CLEAN_SESSION_EXTRA, cleanSession);
 
+            String blurb = buildTaskerBlurb(new String[]{action,
+                                                         "Profile = " + profileName});
             resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BUNDLE", resultBundle);
-            resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BLURB", profileName);
+            resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BLURB", blurb);
             this.context.setResult(RESULT_OK, resultIntent);
         }
     }
@@ -76,7 +83,11 @@ public class TaskerViewModel {
         }
         resultBundle.putString(TaskerMqttConstants.ACTION_EXTRA, MqttServiceConstants.MESSAGE_ARRIVED_ACTION);
         resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BUNDLE", resultBundle);
-        resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BLURB", "Message Arrived");
+
+        String blurb = buildTaskerBlurb(new String[]{"Message Arrived",
+                                                     "Profile = " + selectedProfile,
+                                                     "Subscription = " + selectedSubscription});
+        resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BLURB", blurb);
 
         if ( TaskerPlugin.hostSupportsRelevantVariables( this.context.getIntent().getExtras() ) )
             TaskerPlugin.addRelevantVariableList( resultIntent, new String [] {
@@ -84,9 +95,20 @@ public class TaskerViewModel {
                     "%topic_filter\nTopic Filter\nThe subscription that triggered the arrival of the incoming message",
                     "%profile\nProfile\nThe profile name that the message arrived for",
                     "%message\nMessage\nThe message contents formatted as a string",
-                    "%qos\nQOS\nThe qos value of the incoming message (Depends on subscription qos, too)"
+                    "%qos\nQOS\nThe qos value of the incoming message (Depends on subscription qos, too)",
+                    "%retained\nRetained Flag\nFlag determining if message was retained by the server",
+                    "%duplicate\nDuplicate\nServer indicated that the message might be duplicate of one already received"
             } );
 
         this.context.setResult(RESULT_OK, resultIntent);
+    }
+
+    private String buildTaskerBlurb(String[] lines)
+    {
+        String blurb = "";
+        for(String line : lines){
+            blurb += line + "\n";
+        }
+        return blurb;
     }
 }

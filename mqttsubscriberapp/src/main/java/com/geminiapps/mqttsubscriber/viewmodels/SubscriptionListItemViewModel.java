@@ -21,15 +21,8 @@ public class SubscriptionListItemViewModel {
         mContext = context;
     }
 
-    public boolean subscriptionLongClicked(MqttSubscriptionModel model)
-    {
-        //TODO: add implementation for long click
-        return true;
-    }
-
     public void subscriptionClicked(MqttSubscriptionModel model)
     {
         mServiceSender.subscribeTopic(model.getProfileName(), model.getTopic(), model.getQos());
-        return;
     }
 }

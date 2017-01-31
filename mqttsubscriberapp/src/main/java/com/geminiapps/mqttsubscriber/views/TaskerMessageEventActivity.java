@@ -87,21 +87,19 @@ public class TaskerMessageEventActivity extends AppCompatActivity implements Ada
         profileAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mSubscriptionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-        loadSubscriptionsForProfile(mProfileNames.get(selectedProfileIndex));
+        //TODO: fix issues with no profiles
+        String profileInUse = selectedProfile == null ? mProfileNames.get(0) : selectedProfile;
+        loadSubscriptionsForProfile(profileInUse, selectedSubscription);
 
         mBinding.profileSpinner.setAdapter(profileAdapter);
         mBinding.subscriptionSpinner.setAdapter(mSubscriptionAdapter);
 
         mBinding.profileSpinner.setSelection(selectedProfileIndex);
-
-        //TODO: fix this
-//        if(selectedSubscriptionIndex > 0){
-//            this.binding.subscriptionSpinner.setSelected(selectedSubscriptionIndex);
-//        }
     }
 
-    private void loadSubscriptionsForProfile(String profileName){
+    private void loadSubscriptionsForProfile(String profileName, String selectedSubscription){
         List<MqttSubscriptionModel> subscriptions = MqttSubscriptionModel.findAllForProfile(profileName);
+        int selectedSubscriptionIndex = 0;
 
         mTopicNames.clear();
 
@@ -109,13 +107,18 @@ public class TaskerMessageEventActivity extends AppCompatActivity implements Ada
         for(int i = 0; i < subscriptions.size(); i++){
             MqttSubscriptionModel subscription = subscriptions.get(i);
             mTopicNames.add(subscription.getTopic());
+            if(selectedSubscription.equals(subscription.getTopic())){
+                selectedSubscriptionIndex = i+1;
+            }
         }
+
+        mBinding.subscriptionSpinner.setSelection(selectedSubscriptionIndex);
         mSubscriptionAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        loadSubscriptionsForProfile(mProfileNames.get(position));
+        loadSubscriptionsForProfile(mProfileNames.get(position), ANY_SUBSCRIBED_TOPIC);
     }
 
     @Override

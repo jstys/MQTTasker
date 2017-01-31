@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 import org.eclipse.paho.android.service.tasker.TaskerPlugin;
 
@@ -32,13 +33,18 @@ public class TaskerBroadcastReceiver extends BroadcastReceiver {
         if(ACTION_INTENT.equals(intent.getAction()) && this.actionRunner != null)
         {
             // Tasker action triggered
-            this.actionRunner.runAction(context, bundle);
+            int resultCode = this.actionRunner.runAction(context, bundle, isOrderedBroadcast(), mLastReceivedIntent);
+            if(isOrderedBroadcast()){
+                setResultCode(resultCode);
+            }
         }
         else if(CONDITION_INTENT.equals(intent.getAction()) && this.conditionChecker != null)
         {
             int messageId = TaskerPlugin.Event.retrievePassThroughMessageID(intent);
             Bundle passthroughData = TaskerPlugin.Event.retrievePassThroughData(intent);
-            bundle.putAll(passthroughData);
+            if(bundle != null && passthroughData != null) {
+                bundle.putAll(passthroughData);
+            }
             this.conditionChecker.checkCondition(context, bundle, messageId);
         }
     }

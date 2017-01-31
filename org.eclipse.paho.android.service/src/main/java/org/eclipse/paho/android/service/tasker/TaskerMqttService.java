@@ -21,8 +21,10 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class TaskerMqttService extends MqttService {
     private static final String TAG = "TaskerMqttService";
@@ -30,6 +32,7 @@ public class TaskerMqttService extends MqttService {
 
     private boolean mServiceStarted;
     private int mNumConnectedProfiles;
+    private Map<String, Intent> mSavedTaskerActionIntents;
 
     @Override
     public void onCreate() {
@@ -37,6 +40,8 @@ public class TaskerMqttService extends MqttService {
 
         mServiceStarted = false;
         mNumConnectedProfiles = 0;
+        mSavedTaskerActionIntents = new HashMap<>();
+
         Iterator<MqttConnectionProfileRecord> iter = MqttConnectionProfileRecord.findAll(MqttConnectionProfileRecord.class);
         while(iter.hasNext()){
             MqttConnectionProfileRecord record = iter.next();
@@ -59,54 +64,45 @@ public class TaskerMqttService extends MqttService {
         String action = (intent == null) ? TaskerMqttConstants.START_SERVICE_ACTION : intent.getAction();
         Bundle data = (intent == null || intent.getExtras() == null) ? new Bundle() : intent.getExtras();
 
-        if(!action.equals(TaskerMqttConstants.START_SERVICE_ACTION) && !action.equals(TaskerMqttConstants.STOP_SERVICE_ACTION) && !mServiceStarted){
-            Bundle resultBundle = new Bundle();
-            Exception exception = new Exception("Service is not running");
-            resultBundle.putString(MqttServiceConstants.CALLBACK_ERROR_MESSAGE, exception.getLocalizedMessage());
-            resultBundle.putSerializable(MqttServiceConstants.CALLBACK_EXCEPTION, exception);
-            this.callbackToActivity(null, Status.ERROR, resultBundle);
-        }
-        else {
-            switch (action) {
-                case TaskerMqttConstants.START_SERVICE_ACTION:
-                    ProcessStartServiceAction();
-                    break;
-                case TaskerMqttConstants.CONNECT_ACTION:
-                    ProcessConnectAction(data);
-                    break;
-                case TaskerMqttConstants.DISCONNECT_ACTION:
-                    ProcessDisconnectAction(data);
-                    break;
-                case TaskerMqttConstants.SUBSCRIBE_ACTION:
-                    ProcessSubscribeAction(data);
-                    break;
-                case TaskerMqttConstants.UNSUBSCRIBE_ACTION:
-                    ProcessUnsubscribeAction(data);
-                    break;
-                case TaskerMqttConstants.STOP_SERVICE_ACTION:
-                    ProcessStopServiceAction();
-                    break;
-                case TaskerMqttConstants.QUERY_SERVICE_RUNNING_ACTION:
-                    ProcessQueryServiceAction();
-                    break;
-                case TaskerMqttConstants.QUERY_PROFILE_CONNECTED_ACTION:
-                    ProcessQueryProfileConnectedAction(data);
-                    break;
-                case TaskerMqttConstants.PROFILE_CREATED_ACTION:
-                    ProcessProfileCreatedAction(data);
-                    break;
-                case TaskerMqttConstants.PROFILE_DELETED_ACTION:
-                    ProcessProfileDeletedAction(data);
-                    break;
-                case TaskerMqttConstants.SUBSCRIPTION_CREATED_ACTION:
-                    ProcessSubscriptionCreatedAction(data);
-                    break;
-                case TaskerMqttConstants.SUBSCRIPTION_DELETED_ACTION:
-                    ProcessSubscriptionDeletedAction(data);
-                    break;
-                default:
-                    break;
-            }
+        switch (action) {
+            case TaskerMqttConstants.START_SERVICE_ACTION:
+                ProcessStartServiceAction();
+                break;
+            case TaskerMqttConstants.CONNECT_ACTION:
+                ProcessConnectAction(data);
+                break;
+            case TaskerMqttConstants.DISCONNECT_ACTION:
+                ProcessDisconnectAction(data);
+                break;
+            case TaskerMqttConstants.SUBSCRIBE_ACTION:
+                ProcessSubscribeAction(data);
+                break;
+            case TaskerMqttConstants.UNSUBSCRIBE_ACTION:
+                ProcessUnsubscribeAction(data);
+                break;
+            case TaskerMqttConstants.STOP_SERVICE_ACTION:
+                ProcessStopServiceAction();
+                break;
+            case TaskerMqttConstants.QUERY_SERVICE_RUNNING_ACTION:
+                ProcessQueryServiceAction();
+                break;
+            case TaskerMqttConstants.QUERY_PROFILE_CONNECTED_ACTION:
+                ProcessQueryProfileConnectedAction(data);
+                break;
+            case TaskerMqttConstants.PROFILE_CREATED_ACTION:
+                ProcessProfileCreatedAction(data);
+                break;
+            case TaskerMqttConstants.PROFILE_DELETED_ACTION:
+                ProcessProfileDeletedAction(data);
+                break;
+            case TaskerMqttConstants.SUBSCRIPTION_CREATED_ACTION:
+                ProcessSubscriptionCreatedAction(data);
+                break;
+            case TaskerMqttConstants.SUBSCRIPTION_DELETED_ACTION:
+                ProcessSubscriptionDeletedAction(data);
+                break;
+            default:
+                break;
         }
 
         return START_STICKY;
@@ -165,7 +161,18 @@ public class TaskerMqttService extends MqttService {
             return;
         }
         String profileName = dataBundle.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA);
+        if(dataBundle.containsKey(TaskerMqttConstants.TASKER_SAVED_SETTING_INTENT)) {
+            Intent taskerIntent = dataBundle.getParcelable(TaskerMqttConstants.TASKER_SAVED_SETTING_INTENT);
+            mSavedTaskerActionIntents.put(profileName, taskerIntent);
+        }
+        if(!mServiceStarted){
+            notifyActionError(profileName, TaskerMqttConstants.CONNECT_ACTION, "service is not started");
+            sendTaskerSynchronousResult(profileName, false);
+            return;
+        }
         if(!validateExistingProfile(profileName)){
+            notifyActionError(profileName, TaskerMqttConstants.CONNECT_ACTION, "invalid profile name");
+            sendTaskerSynchronousResult(profileName, false);
             return;
         }
 
@@ -197,7 +204,12 @@ public class TaskerMqttService extends MqttService {
         }
 
         String profileName = dataBundle.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA);
+        if(!mServiceStarted){
+            notifyActionError(profileName, TaskerMqttConstants.DISCONNECT_ACTION, "service is not started");
+            return;
+        }
         if(!validateExistingProfile(profileName)){
+            notifyActionError(profileName, TaskerMqttConstants.DISCONNECT_ACTION, "invalid profile name");
             return;
         }
 
@@ -217,7 +229,12 @@ public class TaskerMqttService extends MqttService {
         String topicFilter = dataBundle.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA);
         int qos = dataBundle.getInt(TaskerMqttConstants.QOS_EXTRA);
         String profileName = dataBundle.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA);
+        if(!mServiceStarted){
+            notifyActionError(profileName, TaskerMqttConstants.SUBSCRIBE_ACTION, "service is not started");
+            return;
+        }
         if(!validateExistingProfile(profileName)){
+            notifyActionError(profileName, TaskerMqttConstants.SUBSCRIBE_ACTION, "invalid profile name");
             return;
         }
 
@@ -235,7 +252,12 @@ public class TaskerMqttService extends MqttService {
 
         String topicFilter = dataBundle.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, null);
         String profileName = dataBundle.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA, null);
+        if(!mServiceStarted){
+            notifyActionError(profileName, TaskerMqttConstants.UNSUBSCRIBE_ACTION, "service is not started");
+            return;
+        }
         if(!validateExistingProfile(profileName)){
+            notifyActionError(profileName, TaskerMqttConstants.UNSUBSCRIBE_ACTION, "invalid profile name");
             return;
         }
 
@@ -298,6 +320,11 @@ public class TaskerMqttService extends MqttService {
         Bundle resultBundle = new Bundle();
         String profileName = dataBundle.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA);
 
+        if(!mServiceStarted){
+            notifyActionError(profileName, TaskerMqttConstants.QUERY_PROFILE_CONNECTED_ACTION, "service is not started");
+            return;
+        }
+
         if(!dataBundle.containsKey(TaskerMqttConstants.PROFILE_NAME_EXTRA)){
             for(String connectionKey : connections.keySet()){
                 MqttConnection connection = connections.get(connectionKey);
@@ -309,6 +336,7 @@ public class TaskerMqttService extends MqttService {
         }
         else{
             Log.w(TAG, "invalid profile specified = " + profileName);
+            notifyActionError(profileName, TaskerMqttConstants.QUERY_PROFILE_CONNECTED_ACTION, "invalid profile name");
             return;
         }
 
@@ -393,9 +421,7 @@ public class TaskerMqttService extends MqttService {
             callbackIntent.putExtras(dataBundle);
         }
 
-        if(mServiceStarted) {
-            callbackToService(clientHandle, status, dataBundle);
-        }
+        callbackToService(clientHandle, status, dataBundle);
 
         sendBroadcast(callbackIntent);
     }
@@ -424,6 +450,8 @@ public class TaskerMqttService extends MqttService {
     }
 
     private void onConnectCallback(String profileName, boolean success){
+        sendTaskerSynchronousResult(profileName, success);
+
         if(success && connections.containsKey(profileName)){
             updateClientState(profileName, true);
             List<MqttSubscriptionRecord> subscriptions = MqttSubscriptionRecord.find(MqttSubscriptionRecord.class, "profile_name = ?", profileName);
@@ -464,9 +492,11 @@ public class TaskerMqttService extends MqttService {
     }
 
     private void updateNotification(){
-        Notification serviceNotification = getServiceNotification();
-        NotificationManager notifManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-        notifManager.notify(SERVICE_NOTIF_ID, serviceNotification);
+        if(mServiceStarted) {
+            Notification serviceNotification = getServiceNotification();
+            NotificationManager notifManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            notifManager.notify(SERVICE_NOTIF_ID, serviceNotification);
+        }
     }
 
     private void updateClientState(String profileName, boolean connected)
@@ -517,6 +547,23 @@ public class TaskerMqttService extends MqttService {
         return true;
     }
 
+    private void sendTaskerSynchronousResult(String profileName, boolean success){
+        if(mSavedTaskerActionIntents.containsKey(profileName)) {
+            int resultCode = success ? TaskerPlugin.Setting.RESULT_CODE_OK : TaskerPlugin.Setting.RESULT_CODE_FAILED;
+            TaskerPlugin.Setting.signalFinish(this, mSavedTaskerActionIntents.get(profileName), resultCode, null);
+            mSavedTaskerActionIntents.remove(profileName);
+        }
+    }
+
+    private void notifyActionError(String profileName, String action, String error){
+        Bundle resultBundle = new Bundle();
+        Exception exception = new Exception(error);
+        resultBundle.putString(MqttServiceConstants.CALLBACK_ERROR_MESSAGE, exception.getLocalizedMessage());
+        resultBundle.putSerializable(MqttServiceConstants.CALLBACK_EXCEPTION, exception);
+        resultBundle.putString(TaskerMqttConstants.ACTION_EXTRA, action);
+        this.callbackToActivity(profileName, Status.ERROR, resultBundle);
+    }
+
     /**
      * General-purpose IMqttActionListener for the Client context
      * <p>
@@ -529,7 +576,7 @@ public class TaskerMqttService extends MqttService {
         private Context context;
         private String profileName;
 
-        public MqttMessageListener(Context context, String topicFilter, String profileName)
+        MqttMessageListener(Context context, String topicFilter, String profileName)
         {
             this.topicFilter = topicFilter;
             this.context = context;
@@ -538,6 +585,8 @@ public class TaskerMqttService extends MqttService {
 
         @Override
         public void messageArrived(String topic, MqttMessage message) throws Exception {
+            Log.d(TAG, "Received message: " + message.toString() + " qos = " + message.getQos() + " topic = " + topic);
+
             Bundle data = new Bundle();
             data.putString(MqttServiceConstants.CALLBACK_ACTION, MqttServiceConstants.MESSAGE_ARRIVED_ACTION);
             data.putString(TaskerMqttConstants.PROFILE_NAME_EXTRA, this.profileName);
@@ -545,6 +594,8 @@ public class TaskerMqttService extends MqttService {
             data.putString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, this.topicFilter);
             data.putString(TaskerMqttConstants.MESSAGE_EXTRA, message.toString());
             data.putInt(TaskerMqttConstants.QOS_EXTRA, message.getQos());
+            data.putBoolean(TaskerMqttConstants.DUPLICATE_EXTRA, message.isDuplicate());
+            data.putBoolean(TaskerMqttConstants.RETAINED_EXTRA, message.isRetained());
             callbackToActivity(this.profileName, Status.OK, data);
             TaskerEventTrigger.triggerEvent(context, data);
         }

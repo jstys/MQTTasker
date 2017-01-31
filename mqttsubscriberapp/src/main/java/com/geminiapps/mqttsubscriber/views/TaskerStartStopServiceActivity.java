@@ -48,10 +48,10 @@ public class TaskerStartStopServiceActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
+    public void finish() {
         this.viewModel.saveServiceActionSettings();
+
+        super.finish();
     }
 
     public boolean isStartAction(){

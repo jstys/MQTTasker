@@ -60,10 +60,10 @@ public class TaskerConnectDisconnectActionActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
+    public void finish() {
         this.viewModel.saveConnectionActionSettings();
+
+        super.finish();
     }
 
     private void loadSpinnerValues(String selectedProfile){
