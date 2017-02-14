@@ -29,6 +29,8 @@ public class TaskerMessageEventActivity extends AppCompatActivity implements Ada
     private List<String> mProfileNames;
     private List<String> mTopicNames;
     ArrayAdapter<String> mSubscriptionAdapter;
+    private String mSelectedProfile;
+    private String mSelectedTopic;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,9 +38,9 @@ public class TaskerMessageEventActivity extends AppCompatActivity implements Ada
 
         Intent taskerIntent = getIntent();
         Bundle taskerExtras = taskerIntent.getBundleExtra(TaskerBroadcastReceiver.TASKER_DATA_BUNDLE);
-        String selectedProfile = null;
-        String selectedTopic = ANY_SUBSCRIBED_TOPIC;
 
+        mSelectedProfile = null;
+        mSelectedTopic = ANY_SUBSCRIBED_TOPIC;
         mProfileNames = new ArrayList<>();
         mTopicNames = new ArrayList<>();
         mViewModel = new TaskerViewModel(this);
@@ -46,13 +48,13 @@ public class TaskerMessageEventActivity extends AppCompatActivity implements Ada
         mBinding.setViewModel(mViewModel);
 
         if(taskerExtras != null) {
-            selectedProfile = taskerExtras.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA);
-            selectedTopic = taskerExtras.getString(TaskerMqttConstants.TOPIC_FILTER_EXTRA, ANY_SUBSCRIBED_TOPIC);
+            mSelectedProfile = taskerExtras.getString(TaskerMqttConstants.TASKER_PROFILE_NAME);
+            mSelectedTopic = taskerExtras.getString(TaskerMqttConstants.TASKER_TOPIC_FILTER, ANY_SUBSCRIBED_TOPIC);
         }
 
         mBinding.profileSpinner.setOnItemSelectedListener(this);
 
-        loadSpinnerValues(selectedProfile, selectedTopic);
+        loadSpinnerValues();
     }
 
     @Override
@@ -62,17 +64,16 @@ public class TaskerMessageEventActivity extends AppCompatActivity implements Ada
         super.finish();
     }
 
-    private void loadSpinnerValues(String selectedProfile, String selectedSubscription){
+    private void loadSpinnerValues(){
         List<MqttConnectionProfileModel> profiles = MqttConnectionProfileModel.findAll();
         int selectedProfileIndex = -1;
-        int selectedSubscriptionIndex = 0;
 
         mTopicNames.add(ANY_SUBSCRIBED_TOPIC);
 
         for(int i = 0; i < profiles.size(); i++){
             MqttConnectionProfileModel profile = profiles.get(i);
             mProfileNames.add(profile.getProfileName());
-            if(profile.getProfileName().equals(selectedProfile)){
+            if(profile.getProfileName().equals(mSelectedProfile)){
                 selectedProfileIndex = i;
             }
         }
@@ -88,37 +89,43 @@ public class TaskerMessageEventActivity extends AppCompatActivity implements Ada
         mSubscriptionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         //TODO: fix issues with no profiles
-        String profileInUse = selectedProfile == null ? mProfileNames.get(0) : selectedProfile;
-        loadSubscriptionsForProfile(profileInUse, selectedSubscription);
+        if(mSelectedProfile == null){
+            mSelectedProfile = mProfileNames.get(0);
+        }
 
         mBinding.profileSpinner.setAdapter(profileAdapter);
         mBinding.subscriptionSpinner.setAdapter(mSubscriptionAdapter);
 
         mBinding.profileSpinner.setSelection(selectedProfileIndex);
+        loadSubscriptionsForProfile(mSelectedTopic);
     }
 
-    private void loadSubscriptionsForProfile(String profileName, String selectedSubscription){
-        List<MqttSubscriptionModel> subscriptions = MqttSubscriptionModel.findAllForProfile(profileName);
+    private void loadSubscriptionsForProfile(String selectedTopic){
+        List<MqttSubscriptionModel> subscriptions = MqttSubscriptionModel.findAllForProfile(mSelectedProfile);
         int selectedSubscriptionIndex = 0;
 
         mTopicNames.clear();
-
         mTopicNames.add(ANY_SUBSCRIBED_TOPIC);
         for(int i = 0; i < subscriptions.size(); i++){
             MqttSubscriptionModel subscription = subscriptions.get(i);
             mTopicNames.add(subscription.getTopic());
-            if(selectedSubscription.equals(subscription.getTopic())){
+            if(selectedTopic.equals(subscription.getTopic())){
                 selectedSubscriptionIndex = i+1;
+                mSelectedTopic = selectedTopic;
             }
         }
+        mSubscriptionAdapter.notifyDataSetChanged();
 
         mBinding.subscriptionSpinner.setSelection(selectedSubscriptionIndex);
-        mSubscriptionAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        loadSubscriptionsForProfile(mProfileNames.get(position), ANY_SUBSCRIBED_TOPIC);
+        String newProfile = mProfileNames.get(position);
+        if(!mSelectedProfile.equals(newProfile)){
+            mSelectedProfile = newProfile;
+            loadSubscriptionsForProfile(ANY_SUBSCRIBED_TOPIC);
+        }
     }
 
     @Override

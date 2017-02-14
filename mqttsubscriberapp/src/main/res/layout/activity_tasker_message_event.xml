@@ -30,9 +30,9 @@
             android:layout_width="match_parent"
             android:id="@+id/subscription_spinner"
             android:layout_below="@+id/subscription_spinner_text"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_height="50dp" />
+            android:layout_height="50dp"
+            android:layout_alignLeft="@+id/subscription_spinner_text"
+            android:layout_alignStart="@+id/subscription_spinner_text" />
 
         <TextView
             android:text="Subscription:"
