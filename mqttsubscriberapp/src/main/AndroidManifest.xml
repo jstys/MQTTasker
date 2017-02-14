@@ -17,7 +17,8 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".views.MainActivity"
+        <activity
+            android:name=".views.MainActivity"
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,20 +27,24 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".views.ConnectionDetailActivity" />
+
         <!-- Connect/Disconnect tasker plugin activity ! -->
         <activity
             android:name=".views.TaskerConnectDisconnectActionActivity"
             android:exported="true"
             android:icon="@android:drawable/gallery_thumb"
             android:label="Connection"
+            android:launchMode="singleTask"
             android:uiOptions="splitActionBarWhenNarrow"
             android:windowSoftInputMode="adjustResize"
-            android:launchMode="singleTask"
             tools:ignore="ExportedActivity">
             <intent-filter>
                 <action android:name="com.twofortyfouram.locale.intent.action.EDIT_SETTING" />
             </intent-filter>
         </activity>
+
+        <!-- Start/Stop service tasker plugin activity ! -->
         <activity
             android:name=".views.TaskerStartStopServiceActivity"
             android:exported="true"
@@ -52,11 +57,28 @@
                 <action android:name="com.twofortyfouram.locale.intent.action.EDIT_SETTING" />
             </intent-filter>
         </activity>
+
+
+        <!-- Message event tasker plugin activity ! -->
         <activity
             android:name=".views.TaskerMessageEventActivity"
             android:exported="true"
             android:icon="@android:drawable/gallery_thumb"
             android:label="Message"
+            android:uiOptions="splitActionBarWhenNarrow"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="ExportedActivity">
+            <intent-filter>
+                <action android:name="net.dinglisch.android.tasker.ACTION_EDIT_EVENT" />
+            </intent-filter>
+        </activity>
+
+        <!-- Connect/Disconnect tasker plugin activity ! -->
+        <activity
+            android:name=".views.TaskerConnectionEventActivity"
+            android:exported="true"
+            android:icon="@android:drawable/gallery_thumb"
+            android:label="Connection"
             android:uiOptions="splitActionBarWhenNarrow"
             android:windowSoftInputMode="adjustResize"
             tools:ignore="ExportedActivity">
@@ -81,9 +103,8 @@
         <!-- Mqtt Service -->
         <service
             android:name="org.eclipse.paho.android.service.tasker.TaskerMqttService"
-            android:process=":org.eclipse.paho.android.service.TaskerMqttService" />
-
-        <activity android:name=".views.ConnectionDetailActivity" />
+            android:process=":org.eclipse.paho.android.service.TaskerMqttService">
+        </service>
     </application>
 
 </manifest>

@@ -39,10 +39,32 @@ public class MqttTaskerBroadcastReceiver extends TaskerBroadcastReceiver impleme
             case MqttServiceConstants.MESSAGE_ARRIVED_ACTION:
                 onTaskerMessageArrived(context, data);
                 break;
+            case TaskerMqttConstants.CONNECT_ACTION:
+            case TaskerMqttConstants.DISCONNECT_ACTION:
+                onTaskerConnectionEvent(context, data);
+                break;
             default:
                 break;
         }
+    }
 
+    private void onTaskerConnectionEvent(Context context, Bundle data){
+        if(data == null){
+            setResultCode(TASKER_RESULT_CONDITION_UNSATISFIED);
+            return;
+        }
+
+        String taskerProfileName = data.getString(TaskerMqttConstants.TASKER_PROFILE_NAME);
+        String profileName = data.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA);
+        String taskerEvent = data.getString(TaskerMqttConstants.ACTION_EXTRA);
+        String event = data.getString(MqttServiceConstants.CALLBACK_ACTION);
+
+        if(taskerProfileName.equals(profileName) && taskerEvent.equals(event)){
+            setResultCode(TASKER_RESULT_CONDITION_SATISFIED);
+        }
+        else{
+            setResultCode(TASKER_RESULT_CONDITION_UNSATISFIED);
+        }
     }
 
     private void onTaskerMessageArrived(Context context, Bundle data){

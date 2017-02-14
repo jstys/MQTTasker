@@ -19,23 +19,19 @@
 
         <Spinner
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
             android:id="@+id/spinner"
-            android:layout_alignBottom="@+id/profile_spinner_text"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
-            android:layout_toRightOf="@+id/profile_spinner_text"
-            android:layout_toEndOf="@+id/profile_spinner_text"
-            style="@style/Widget.AppCompat.Spinner"
+            android:layout_below="@+id/profile_spinner_text"
             android:textAlignment="center"
-            android:gravity="center_vertical"
-            android:layout_alignParentTop="true" />
+            android:gravity="center_vertical"/>
 
         <RadioGroup
             android:id="@+id/connect_disconnect_radiogroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/profile_spinner_text">
+            android:layout_below="@+id/spinner">
             <RadioButton
                 android:text="Connect"
                 android:layout_width="wrap_content"

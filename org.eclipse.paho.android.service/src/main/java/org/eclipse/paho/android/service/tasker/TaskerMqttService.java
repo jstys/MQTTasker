@@ -442,6 +442,7 @@ public class TaskerMqttService extends MqttService {
             case MqttServiceConstants.ON_CONNECTION_LOST_ACTION:
             case TaskerMqttConstants.DISCONNECT_ACTION:
                 updateClientState(profileName, false);
+                sendTaskerConnectionEvent(profileName, false);
                 break;
             case TaskerMqttConstants.STOP_SERVICE_ACTION:
                 onStopService(success);
@@ -454,6 +455,7 @@ public class TaskerMqttService extends MqttService {
 
         if(success && connections.containsKey(profileName)){
             updateClientState(profileName, true);
+            sendTaskerConnectionEvent(profileName, true);
             List<MqttSubscriptionRecord> subscriptions = MqttSubscriptionRecord.find(MqttSubscriptionRecord.class, "profile_name = ?", profileName);
             for(MqttSubscriptionRecord record : subscriptions){
                 subscribe(profileName, record.topic, record.qos, null, null);
@@ -555,6 +557,14 @@ public class TaskerMqttService extends MqttService {
         }
     }
 
+    private void sendTaskerConnectionEvent(String profileName, boolean isConnected){
+        Bundle data = new Bundle();
+        String action = isConnected ? TaskerMqttConstants.CONNECT_ACTION : TaskerMqttConstants.DISCONNECT_ACTION;
+        data.putString(MqttServiceConstants.CALLBACK_ACTION, action);
+        data.putString(TaskerMqttConstants.PROFILE_NAME_EXTRA, profileName);
+        TaskerEventTrigger.triggerEvent(this, data, action);
+    }
+
     private void notifyActionError(String profileName, String action, String error){
         Bundle resultBundle = new Bundle();
         Exception exception = new Exception(error);
@@ -597,7 +607,7 @@ public class TaskerMqttService extends MqttService {
             data.putBoolean(TaskerMqttConstants.DUPLICATE_EXTRA, message.isDuplicate());
             data.putBoolean(TaskerMqttConstants.RETAINED_EXTRA, message.isRetained());
             callbackToActivity(this.profileName, Status.OK, data);
-            TaskerEventTrigger.triggerEvent(context, data);
+            TaskerEventTrigger.triggerEvent(context, data, MqttServiceConstants.MESSAGE_ARRIVED_ACTION);
         }
     }
 }

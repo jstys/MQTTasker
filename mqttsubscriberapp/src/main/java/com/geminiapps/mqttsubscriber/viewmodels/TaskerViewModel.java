@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 import com.geminiapps.mqttsubscriber.views.TaskerConnectDisconnectActionActivity;
+import com.geminiapps.mqttsubscriber.views.TaskerConnectionEventActivity;
 import com.geminiapps.mqttsubscriber.views.TaskerMessageEventActivity;
 import com.geminiapps.mqttsubscriber.views.TaskerStartStopServiceActivity;
 
@@ -99,6 +100,27 @@ public class TaskerViewModel {
                     "%retained\nRetained Flag\nFlag determining if message was retained by the server",
                     "%duplicate\nDuplicate\nServer indicated that the message might be duplicate of one already received"
             } );
+
+        this.context.setResult(RESULT_OK, resultIntent);
+    }
+
+    public void saveConnectionEventSettings(){
+        Intent resultIntent = new Intent();
+        Bundle resultBundle = new Bundle();
+
+        TaskerConnectionEventActivity activity = (TaskerConnectionEventActivity)this.context;
+        String selectedProfile = activity.getSelectedProfileName();
+        boolean connect = activity.isConnectedEvent();
+        String action = connect ? TaskerMqttConstants.CONNECT_ACTION : TaskerMqttConstants.DISCONNECT_ACTION;
+
+        resultBundle.putString(TaskerMqttConstants.TASKER_PROFILE_NAME, selectedProfile);
+        resultBundle.putString(TaskerMqttConstants.ACTION_EXTRA, action);
+        resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BUNDLE", resultBundle);
+
+        String title = connect ? "Profile Connected" : "Profile Disconnected";
+        String blurb = buildTaskerBlurb(new String[]{title,
+                "Profile = " + selectedProfile});
+        resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BLURB", blurb);
 
         this.context.setResult(RESULT_OK, resultIntent);
     }
