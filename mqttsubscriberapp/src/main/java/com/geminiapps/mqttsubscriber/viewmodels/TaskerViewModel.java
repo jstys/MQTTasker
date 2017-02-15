@@ -78,30 +78,32 @@ public class TaskerViewModel {
         String selectedProfile = activity.getSelectedProfile();
         String selectedSubscription = activity.getSelectedSubscription();
 
-        resultBundle.putString(TaskerMqttConstants.TASKER_PROFILE_NAME, selectedProfile);
-        if(!selectedSubscription.equals(TaskerMessageEventActivity.ANY_SUBSCRIBED_TOPIC)) {
-            resultBundle.putString(TaskerMqttConstants.TASKER_TOPIC_FILTER, selectedSubscription);
+        if(selectedProfile != null) {
+            resultBundle.putString(TaskerMqttConstants.TASKER_PROFILE_NAME, selectedProfile);
+            if (!selectedSubscription.equals(TaskerMessageEventActivity.ANY_SUBSCRIBED_TOPIC)) {
+                resultBundle.putString(TaskerMqttConstants.TASKER_TOPIC_FILTER, selectedSubscription);
+            }
+            resultBundle.putString(TaskerMqttConstants.ACTION_EXTRA, MqttServiceConstants.MESSAGE_ARRIVED_ACTION);
+            resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BUNDLE", resultBundle);
+
+            String blurb = buildTaskerBlurb(new String[]{"Message Arrived",
+                    "Profile = " + selectedProfile,
+                    "Subscription = " + selectedSubscription});
+            resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BLURB", blurb);
+
+            if (TaskerPlugin.hostSupportsRelevantVariables(this.context.getIntent().getExtras()))
+                TaskerPlugin.addRelevantVariableList(resultIntent, new String[]{
+                        "%topic\nTopic\nThe full topic name that the message was published to",
+                        "%topic_filter\nTopic Filter\nThe subscription that triggered the arrival of the incoming message",
+                        "%profile\nProfile\nThe profile name that the message arrived for",
+                        "%message\nMessage\nThe message contents formatted as a string",
+                        "%qos\nQOS\nThe qos value of the incoming message (Depends on subscription qos, too)",
+                        "%retained\nRetained Flag\nFlag determining if message was retained by the server",
+                        "%duplicate\nDuplicate\nServer indicated that the message might be duplicate of one already received"
+                });
+
+            this.context.setResult(RESULT_OK, resultIntent);
         }
-        resultBundle.putString(TaskerMqttConstants.ACTION_EXTRA, MqttServiceConstants.MESSAGE_ARRIVED_ACTION);
-        resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BUNDLE", resultBundle);
-
-        String blurb = buildTaskerBlurb(new String[]{"Message Arrived",
-                                                     "Profile = " + selectedProfile,
-                                                     "Subscription = " + selectedSubscription});
-        resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BLURB", blurb);
-
-        if ( TaskerPlugin.hostSupportsRelevantVariables( this.context.getIntent().getExtras() ) )
-            TaskerPlugin.addRelevantVariableList( resultIntent, new String [] {
-                    "%topic\nTopic\nThe full topic name that the message was published to",
-                    "%topic_filter\nTopic Filter\nThe subscription that triggered the arrival of the incoming message",
-                    "%profile\nProfile\nThe profile name that the message arrived for",
-                    "%message\nMessage\nThe message contents formatted as a string",
-                    "%qos\nQOS\nThe qos value of the incoming message (Depends on subscription qos, too)",
-                    "%retained\nRetained Flag\nFlag determining if message was retained by the server",
-                    "%duplicate\nDuplicate\nServer indicated that the message might be duplicate of one already received"
-            } );
-
-        this.context.setResult(RESULT_OK, resultIntent);
     }
 
     public void saveConnectionEventSettings(){
@@ -113,16 +115,18 @@ public class TaskerViewModel {
         boolean connect = activity.isConnectedEvent();
         String action = connect ? TaskerMqttConstants.CONNECT_ACTION : TaskerMqttConstants.DISCONNECT_ACTION;
 
-        resultBundle.putString(TaskerMqttConstants.TASKER_PROFILE_NAME, selectedProfile);
-        resultBundle.putString(TaskerMqttConstants.ACTION_EXTRA, action);
-        resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BUNDLE", resultBundle);
+        if(selectedProfile != null) {
+            resultBundle.putString(TaskerMqttConstants.TASKER_PROFILE_NAME, selectedProfile);
+            resultBundle.putString(TaskerMqttConstants.ACTION_EXTRA, action);
+            resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BUNDLE", resultBundle);
 
-        String title = connect ? "Profile Connected" : "Profile Disconnected";
-        String blurb = buildTaskerBlurb(new String[]{title,
-                "Profile = " + selectedProfile});
-        resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BLURB", blurb);
+            String title = connect ? "Profile Connected" : "Profile Disconnected";
+            String blurb = buildTaskerBlurb(new String[]{title,
+                    "Profile = " + selectedProfile});
+            resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BLURB", blurb);
 
-        this.context.setResult(RESULT_OK, resultIntent);
+            this.context.setResult(RESULT_OK, resultIntent);
+        }
     }
 
     private String buildTaskerBlurb(String[] lines)

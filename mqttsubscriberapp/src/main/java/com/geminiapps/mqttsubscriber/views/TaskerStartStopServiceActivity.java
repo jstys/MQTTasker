@@ -26,7 +26,7 @@ public class TaskerStartStopServiceActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        String action = "";
+        String action = TaskerMqttConstants.START_SERVICE_ACTION;
         Intent taskerIntent = getIntent();
         Bundle taskerExtras = taskerIntent.getBundleExtra(TaskerBroadcastReceiver.TASKER_DATA_BUNDLE);
 
@@ -35,15 +35,16 @@ public class TaskerStartStopServiceActivity extends AppCompatActivity {
         this.binding.setViewModel(this.viewModel);
 
         if(taskerExtras != null) {
-            action = taskerExtras.getString(TaskerMqttConstants.ACTION_EXTRA);
-            switch (action) {
-                case TaskerMqttConstants.START_SERVICE_ACTION:
-                    this.binding.startServiceButton.setChecked(true);
-                    break;
-                case TaskerMqttConstants.STOP_SERVICE_ACTION:
-                    this.binding.stopServiceButton.setChecked(true);
-                    break;
-            }
+            action = taskerExtras.getString(TaskerMqttConstants.ACTION_EXTRA, TaskerMqttConstants.START_SERVICE_ACTION);
+        }
+
+        switch (action) {
+            case TaskerMqttConstants.START_SERVICE_ACTION:
+                this.binding.startServiceButton.setChecked(true);
+                break;
+            case TaskerMqttConstants.STOP_SERVICE_ACTION:
+                this.binding.stopServiceButton.setChecked(true);
+                break;
         }
     }
 

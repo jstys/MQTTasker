@@ -88,8 +88,7 @@ public class TaskerMessageEventActivity extends AppCompatActivity implements Ada
         profileAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mSubscriptionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-        //TODO: fix issues with no profiles
-        if(mSelectedProfile == null){
+        if(mSelectedProfile == null && mProfileNames.size() > 0){
             mSelectedProfile = mProfileNames.get(0);
         }
 
@@ -101,21 +100,23 @@ public class TaskerMessageEventActivity extends AppCompatActivity implements Ada
     }
 
     private void loadSubscriptionsForProfile(String selectedTopic){
-        List<MqttSubscriptionModel> subscriptions = MqttSubscriptionModel.findAllForProfile(mSelectedProfile);
-        int selectedSubscriptionIndex = 0;
-
         mTopicNames.clear();
         mTopicNames.add(ANY_SUBSCRIBED_TOPIC);
-        for(int i = 0; i < subscriptions.size(); i++){
-            MqttSubscriptionModel subscription = subscriptions.get(i);
-            mTopicNames.add(subscription.getTopic());
-            if(selectedTopic.equals(subscription.getTopic())){
-                selectedSubscriptionIndex = i+1;
-                mSelectedTopic = selectedTopic;
+        int selectedSubscriptionIndex = 0;
+
+        if(mSelectedProfile != null) {
+            List<MqttSubscriptionModel> subscriptions = MqttSubscriptionModel.findAllForProfile(mSelectedProfile);
+
+            for (int i = 0; i < subscriptions.size(); i++) {
+                MqttSubscriptionModel subscription = subscriptions.get(i);
+                mTopicNames.add(subscription.getTopic());
+                if (selectedTopic.equals(subscription.getTopic())) {
+                    selectedSubscriptionIndex = i + 1;
+                    mSelectedTopic = selectedTopic;
+                }
             }
         }
         mSubscriptionAdapter.notifyDataSetChanged();
-
         mBinding.subscriptionSpinner.setSelection(selectedSubscriptionIndex);
     }
 
