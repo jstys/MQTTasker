@@ -13,16 +13,6 @@
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin"
         tools:context="com.geminiapps.mqttsubscriber.views.TaskerConnectionEventActivity">
-        <TextView
-            android:text="Connection Profile:"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:id="@+id/profile_spinner_text"
-            android:textSize="20sp"
-            android:layout_margin="10dp" />
 
         <Spinner
             android:layout_width="match_parent"
@@ -39,7 +29,7 @@
             android:layout_below="@+id/profile_spinner">
             <RadioButton
                 android:text="On connect"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:id="@+id/connect_radio_button"
@@ -47,12 +37,23 @@
 
             <RadioButton
                 android:text="On disconnect"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/disconnect_radio_button"
                 android:layout_marginTop="10dp"
                 android:textSize="20sp" />
         </RadioGroup>
+
+        <TextView
+            android:text="Connection Profile:"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/profile_spinner_text"
+            android:textSize="20sp"
+            android:layout_margin="10dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
 
     </RelativeLayout>
 </layout>

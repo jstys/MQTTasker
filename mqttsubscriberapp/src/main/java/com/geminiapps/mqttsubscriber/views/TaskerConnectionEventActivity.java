@@ -36,7 +36,7 @@ public class TaskerConnectionEventActivity extends AppCompatActivity {
         mBinding.setViewModel(mViewModel);
 
         if(taskerExtras != null) {
-            selectedProfile = taskerExtras.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA, "");
+            selectedProfile = taskerExtras.getString(TaskerMqttConstants.TASKER_PROFILE_NAME, "");
             action = taskerExtras.getString(TaskerMqttConstants.ACTION_EXTRA, "");
         }
 
