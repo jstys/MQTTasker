@@ -117,12 +117,12 @@ public class ConnectionDetailViewModel extends MqttServiceListener implements Ad
 
     @Override
     protected void onClientSubscribeResponse(String profileName, String topicFilter, boolean success) {
-        Toast.makeText(this.mContext, "Successfully subscribed to topic filter = " + topicFilter, Toast.LENGTH_SHORT).show();
+        //TODO: potentially show subscription success / failure
     }
 
     @Override
     protected void onMessageArrived(String profileName, String topicFilter, String topic, String message, int qos) {
-        Toast.makeText(this.mContext, "Received message = " + message + " with qos = " + qos + " and topic = " + topic, Toast.LENGTH_SHORT).show();
+        //TODO: potentially display arrived messages on the GUI
     }
 
     private boolean handleConnectionAction(){

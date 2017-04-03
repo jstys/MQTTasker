@@ -96,7 +96,7 @@ public class MqttServiceReceiver extends BroadcastReceiver {
                             this.listener.onQueryProfileConnectedResponse(resultBundle);
                             break;
                         default:
-                            Toast.makeText(context, "Received broadcast with action = " + action, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(context, "Received broadcast with unsupported action = " + action, Toast.LENGTH_SHORT).show();
                             break;
                     }
                 }

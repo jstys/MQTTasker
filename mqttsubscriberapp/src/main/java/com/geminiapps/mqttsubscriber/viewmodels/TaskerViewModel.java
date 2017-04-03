@@ -3,7 +3,6 @@ package com.geminiapps.mqttsubscriber.viewmodels;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Toast;
 
 import com.geminiapps.mqttsubscriber.views.TaskerConnectDisconnectActionActivity;
 import com.geminiapps.mqttsubscriber.views.TaskerConnectionEventActivity;

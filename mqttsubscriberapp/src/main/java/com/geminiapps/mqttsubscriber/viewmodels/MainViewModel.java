@@ -106,7 +106,6 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
 
     @Override
     public void onQueryServiceRunningResponse(boolean running) {
-        Toast.makeText(this.viewContext, "Service running = " + running, Toast.LENGTH_SHORT).show();
         this.serviceRunning = running;
     }
 
