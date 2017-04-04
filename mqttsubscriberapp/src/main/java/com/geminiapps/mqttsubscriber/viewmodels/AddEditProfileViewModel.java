@@ -3,13 +3,15 @@ package com.geminiapps.mqttsubscriber.viewmodels;
 import android.app.Dialog;
 import android.databinding.ObservableField;
 import android.net.Uri;
+import android.util.Patterns;
+import android.widget.Toast;
 
 import com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel;
 import com.geminiapps.mqttsubscriber.views.AddEditProfileFragment;
 
-/**
- * Created by jim.stys on 10/2/16.
- */
+import org.abego.treelayout.internal.util.java.lang.string.StringUtil;
+import org.apache.commons.codec.binary.StringUtils;
+import org.apache.commons.io.output.StringBuilderWriter;
 
 public class AddEditProfileViewModel {
     private static final String TCP_PROTOCOL = "TCP";
@@ -37,10 +39,16 @@ public class AddEditProfileViewModel {
     }
 
     public void saveConnectionProfile() {
-        if (mModel != null && !mModel.getProfileName().isEmpty() && !brokerHost.get().isEmpty()) {
-            mModel.setBrokerUri(buildBrokerURI());
-            this.profileAddedListener.onProfileAdded(mModel);
-            this.dialog.dismiss();
+        if (mModel != null) {
+            StringBuilder errorStringBuilder = new StringBuilder();
+            if(validateProfile(errorStringBuilder)) {
+                mModel.setBrokerUri(buildBrokerURI());
+                this.profileAddedListener.onProfileAdded(mModel);
+                this.dialog.dismiss();
+            }
+            else{
+                Toast.makeText(mView.getContext(), errorStringBuilder.toString(), Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -61,5 +69,51 @@ public class AddEditProfileViewModel {
         uri += brokerHost.get() + ":" + brokerPort.get();
 
         return uri;
+    }
+
+    private boolean validateProfile(StringBuilder errorStringBuilder){
+        boolean isValid = true;
+
+        //Validate using the minimum required client identifier
+        if(!mModel.getClientId().matches("^[A-Za-z0-9]+$")){
+            errorStringBuilder.append("Client Identifier contains non-alphanumeric characters\n");
+            isValid = false;
+        }
+
+        if(mModel.getClientId().length() < 1 || mModel.getClientId().length() > 23){
+            errorStringBuilder.append("Client Identifier must be between 1 and 23 characters\n");
+            isValid = false;
+        }
+
+        if(mModel.getUsername().length() > 65535){
+            errorStringBuilder.append("Username must be less than 65535 characters\n");
+            isValid = false;
+        }
+
+        if(mModel.getPassword().length() > 65535){
+            errorStringBuilder.append("Password must be less than 65535 characters\n");
+            isValid = false;
+        }
+
+        int port = 0;
+        try{
+            port = Integer.parseInt(brokerPort.get());
+        }
+        catch(NumberFormatException e){
+            //Just catch the failed parsing
+        }
+        finally{
+            if(port < 1 || port > 65535){
+                errorStringBuilder.append("Broker port must be between 1 and 65535\n");
+                isValid = false;
+            }
+        }
+
+        if(!Patterns.WEB_URL.matcher(buildBrokerURI()).matches()){
+            errorStringBuilder.append("Broker URI is not valid\n");
+            isValid = false;
+        }
+
+        return isValid;
     }
 }
