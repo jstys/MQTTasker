@@ -62,7 +62,7 @@ public class MqttServiceReceiver extends BroadcastReceiver {
                     boolean status = intent.getSerializableExtra(MqttServiceConstants.CALLBACK_STATUS) == Status.OK;
                     Serializable exception = intent.getSerializableExtra(MqttServiceConstants.CALLBACK_EXCEPTION);
                     if(exception != null){
-                        error = ((MqttException)exception).toString();
+                        error = intent.getStringExtra(MqttServiceConstants.CALLBACK_ERROR_MESSAGE);
                     }
                     switch(action){
                         case TaskerMqttConstants.START_SERVICE_ACTION:
@@ -88,6 +88,9 @@ public class MqttServiceReceiver extends BroadcastReceiver {
                             break;
                         case MqttServiceConstants.SUBSCRIBE_ACTION:
                             this.listener.onClientSubscribeResponse(profileName, topicFilter, status);
+                            break;
+                        case MqttServiceConstants.UNSUBSCRIBE_ACTION:
+                            this.listener.onClientUnsubscribeResponse(profileName, topicFilter, status);
                             break;
                         case MqttServiceConstants.MESSAGE_ARRIVED_ACTION:
                             this.listener.onMessageArrived(profileName, topicFilter, topic, message, qos);

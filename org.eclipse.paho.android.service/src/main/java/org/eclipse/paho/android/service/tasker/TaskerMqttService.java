@@ -577,10 +577,10 @@ public class TaskerMqttService extends MqttService {
 
     private void notifyActionError(String profileName, String action, String error){
         Bundle resultBundle = new Bundle();
-        Exception exception = new Exception(error);
-        resultBundle.putString(MqttServiceConstants.CALLBACK_ERROR_MESSAGE, exception.getLocalizedMessage());
+        MqttException exception = new MqttException(MqttException.REASON_CODE_CLIENT_EXCEPTION);
+        resultBundle.putString(MqttServiceConstants.CALLBACK_ERROR_MESSAGE, error);
         resultBundle.putSerializable(MqttServiceConstants.CALLBACK_EXCEPTION, exception);
-        resultBundle.putString(TaskerMqttConstants.ACTION_EXTRA, action);
+        resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION, action);
         this.callbackToActivity(profileName, Status.ERROR, resultBundle);
     }
 
