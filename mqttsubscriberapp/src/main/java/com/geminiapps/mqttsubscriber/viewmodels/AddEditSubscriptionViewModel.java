@@ -27,7 +27,7 @@ public class AddEditSubscriptionViewModel {
                 this.dialog.dismiss();
             }
             else{
-                Toast.makeText(mView.getContext(), errorStringBuilder.toString(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(mView.getContext(), errorStringBuilder.toString(), Toast.LENGTH_LONG).show();
             }
         }
     }

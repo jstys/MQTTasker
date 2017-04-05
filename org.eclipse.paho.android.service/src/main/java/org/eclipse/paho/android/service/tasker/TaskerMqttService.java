@@ -386,8 +386,7 @@ public class TaskerMqttService extends MqttService {
 
         Log.d(TAG, "Profile deleted callback for profile name = " + profileName);
 
-        MqttConnection connection = connections.get(profileName);
-        connection.disconnect(null, null);
+        disconnect(profileName, null, null);
         connections.remove(profileName);
 
         MqttSubscriptionRecord.deleteAll(MqttSubscriptionRecord.class, "profile_name = ?", profileName);
@@ -395,14 +394,25 @@ public class TaskerMqttService extends MqttService {
 
     @Override
     public void disconnect(String clientHandle, String invocationContext, String activityToken) {
-        MqttConnection client = getConnection(clientHandle);
-        client.disconnect(invocationContext, activityToken);
+        if(mServiceStarted) {
+            MqttConnection client = getConnection(clientHandle);
+            client.disconnect(invocationContext, activityToken);
+        }
+    }
+
+    @Override
+    public void unsubscribe(String clientHandle, String topic, String invocationContext, String activityToken) {
+        if(mServiceStarted) {
+            super.unsubscribe(clientHandle, topic, invocationContext, activityToken);
+        }
     }
 
     public void subscribe(String profileName, String topicFilter, int qos, String invocationContext, String activityToken){
-        MqttConnection client = getConnection(profileName);
-        IMqttMessageListener messageListener = new MqttMessageListener(this, topicFilter, profileName);
-        client.subscribe(topicFilter, qos, invocationContext, activityToken, messageListener);
+        if(mServiceStarted) {
+            MqttConnection client = getConnection(profileName);
+            IMqttMessageListener messageListener = new MqttMessageListener(this, topicFilter, profileName);
+            client.subscribe(topicFilter, qos, invocationContext, activityToken, messageListener);
+        }
     }
 
     @Override

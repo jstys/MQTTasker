@@ -8,42 +8,47 @@
     <RelativeLayout
         android:layout_width="match_parent" android:layout_height="match_parent">
 
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/topic_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-        <EditText
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:inputType="textPersonName"
-            android:text="@={subscriptionModel.topic}"
-            android:hint="testtopic/#"
-            android:ems="10"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:id="@+id/topic_edittext"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:textSize="18sp"
-            android:padding="?android:attr/dialogPreferredPadding"/>
+            <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:text="@={subscriptionModel.topic}"
+                android:hint="testtopic/#"
+                android:ems="10"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:id="@+id/topic_edittext"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:textSize="18sp"/>
+        </android.support.design.widget.TextInputLayout>
 
         <TextView
             android:text="QoS"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/topic_edittext"
+            android:layout_below="@+id/topic_layout"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:id="@+id/qos_textview"
             android:textSize="20sp"
             android:layout_marginRight="20dp"
-            android:padding="?android:attr/dialogPreferredPadding"/>
+            android:layout_marginLeft="4sp"
+            android:layout_marginTop="5sp" />
 
         <Spinner
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/topic_edittext"
             android:layout_toRightOf="@+id/qos_textview"
             android:id="@+id/qos_spinner"
-            android:layout_above="@+id/button_linear_layout" />
+            android:layout_above="@+id/button_linear_layout"
+            android:layout_alignTop="@+id/qos_textview" />
 
         <LinearLayout
             android:id="@+id/button_linear_layout"
@@ -52,7 +57,8 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/qos_textview"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true">
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="15sp">
 
             <Button
                 android:text="Save"

@@ -47,7 +47,7 @@ public class AddEditProfileViewModel {
                 this.dialog.dismiss();
             }
             else{
-                Toast.makeText(mView.getContext(), errorStringBuilder.toString(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(mView.getContext(), errorStringBuilder.toString(), Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -73,6 +73,11 @@ public class AddEditProfileViewModel {
 
     private boolean validateProfile(StringBuilder errorStringBuilder){
         boolean isValid = true;
+
+        if(mModel.getProfileName().isEmpty()){
+            errorStringBuilder.append("Profile name cannot be empty\n");
+            isValid = false;
+        }
 
         //Validate using the minimum required client identifier
         if(!mModel.getClientId().matches("^[A-Za-z0-9]+$")){
@@ -107,11 +112,6 @@ public class AddEditProfileViewModel {
                 errorStringBuilder.append("Broker port must be between 1 and 65535\n");
                 isValid = false;
             }
-        }
-
-        if(!Patterns.WEB_URL.matcher(buildBrokerURI()).matches()){
-            errorStringBuilder.append("Broker URI is not valid\n");
-            isValid = false;
         }
 
         return isValid;
