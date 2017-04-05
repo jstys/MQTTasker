@@ -24,7 +24,7 @@
             android:layout_alignParentTop="true"
             android:textSize="24sp"
             android:gravity="center_vertical"
-            android:clickable="true" />
+            android:clickable="false" />
 
     </RelativeLayout>
 </layout>
