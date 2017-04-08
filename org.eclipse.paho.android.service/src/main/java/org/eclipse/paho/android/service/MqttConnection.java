@@ -897,19 +897,9 @@ public class MqttConnection implements MqttCallbackExtended {
 	public void messageArrived(String topic, MqttMessage message)
 			throws Exception {
 
-		mService.traceDebug(TAG,
-				"messageArrived(" + topic + ",{" + message.toString() + "})");
-
-		String messageId = mService.messageStore.storeArrived(mProfileName,
-				topic, message);
-	
-		Bundle resultBundle = messageToBundle(messageId, topic, message);
-		resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION,
-				MqttServiceConstants.MESSAGE_ARRIVED_ACTION);
-		resultBundle.putString(MqttServiceConstants.CALLBACK_MESSAGE_ID,
-				messageId);
-		mService.callbackToActivity(mProfileName, Status.OK, resultBundle);
-				
+		//Custom message handlers are passed in for all subscribed topics
+		//If we get here then we are getting messages that don't match our topic filters...
+		return;
 	}
 
 

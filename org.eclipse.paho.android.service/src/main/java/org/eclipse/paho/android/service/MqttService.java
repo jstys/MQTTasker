@@ -245,9 +245,6 @@ public class MqttService extends Service implements MqttTraceHandler {
   private BackgroundDataPreferenceReceiver backgroundDataPreferenceMonitor;
   private volatile boolean backgroundDataEnabled = true;
 
-  // a way to pass ourself back to the activity
-  private MqttServiceHandler mqttServiceHandler;
-
 	// mapping from client handle strings to actual client connections.
 	protected Map<String/* clientHandle */, MqttConnection/* client */> connections = new ConcurrentHashMap<String, MqttConnection>();
 
@@ -611,10 +608,6 @@ public class MqttService extends Service implements MqttTraceHandler {
   public void onCreate() {
     super.onCreate();
 
-    // create a binder that will let the Activity UI send
-    // commands to the Service
-    MqttServiceHandler mqttServiceHandler = null;
-
     // create somewhere to buffer received messages until
     // we know that they have been passed to the application
     messageStore = new DatabaseMessageStore(this, this);
@@ -629,13 +622,8 @@ public class MqttService extends Service implements MqttTraceHandler {
 	public void onDestroy() {
 		// disconnect immediately
 		for (MqttConnection client : connections.values()) {
-			client.disconnect(null, null);
-		}
-
-    // clear down
-    if (mqttServiceHandler != null) {
-      mqttServiceHandler = null;
-    }
+          client.disconnect(null, null);
+        }
 
 		unregisterBroadcastReceivers();
 
@@ -655,7 +643,7 @@ public class MqttService extends Service implements MqttTraceHandler {
     // we were given when started
     String activityToken = intent
         .getStringExtra(MqttServiceConstants.CALLBACK_ACTIVITY_TOKEN);
-    mqttServiceHandler.setActivityToken(activityToken);
+
     return null;
   }
 
