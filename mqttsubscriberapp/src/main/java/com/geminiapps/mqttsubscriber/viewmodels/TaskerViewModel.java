@@ -15,9 +15,6 @@ import org.eclipse.paho.android.service.tasker.TaskerPlugin;
 
 import static android.app.Activity.RESULT_OK;
 
-/**
- * Created by jim.stys on 10/10/16.
- */
 
 public class TaskerViewModel {
     private Activity context;

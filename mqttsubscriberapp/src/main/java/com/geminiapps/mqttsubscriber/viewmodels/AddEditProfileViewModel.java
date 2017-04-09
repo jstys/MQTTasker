@@ -3,15 +3,10 @@ package com.geminiapps.mqttsubscriber.viewmodels;
 import android.app.Dialog;
 import android.databinding.ObservableField;
 import android.net.Uri;
-import android.util.Patterns;
 import android.widget.Toast;
 
 import com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel;
 import com.geminiapps.mqttsubscriber.views.AddEditProfileFragment;
-
-import org.abego.treelayout.internal.util.java.lang.string.StringUtil;
-import org.apache.commons.codec.binary.StringUtils;
-import org.apache.commons.io.output.StringBuilderWriter;
 
 public class AddEditProfileViewModel {
     private static final String TCP_PROTOCOL = "TCP";

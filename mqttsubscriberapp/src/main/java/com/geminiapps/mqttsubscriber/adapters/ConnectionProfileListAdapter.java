@@ -16,10 +16,6 @@ import com.geminiapps.mqttsubscriber.viewmodels.ConnectionProfileListItemViewMod
 
 import java.util.ArrayList;
 
-/**
- * Created by jim.stys on 10/2/16.
- */
-
 public class ConnectionProfileListAdapter extends ArrayAdapter {
     private ObservableArrayList<MqttConnectionProfileModel> mConnectionProfileList;
     private Context mContext;

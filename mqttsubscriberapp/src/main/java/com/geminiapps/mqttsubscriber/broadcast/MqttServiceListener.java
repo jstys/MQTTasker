@@ -2,9 +2,6 @@ package com.geminiapps.mqttsubscriber.broadcast;
 
 import android.os.Bundle;
 
-/**
- * Created by jim.stys on 10/5/16.
- */
 
 public class MqttServiceListener {
     protected void onQueryServiceRunningResponse(boolean running){ /* Empty default implementation  */}

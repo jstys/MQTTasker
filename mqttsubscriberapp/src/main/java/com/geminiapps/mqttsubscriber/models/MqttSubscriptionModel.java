@@ -13,9 +13,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-/**
- * Created by jim.stys on 10/1/16.
- */
 
 public class MqttSubscriptionModel extends BaseObservable implements Parcelable {
     private String topic;

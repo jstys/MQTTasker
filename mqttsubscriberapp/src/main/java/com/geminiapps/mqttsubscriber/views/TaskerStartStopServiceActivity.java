@@ -13,9 +13,6 @@ import com.geminiapps.mqttsubscriber.viewmodels.TaskerViewModel;
 
 import org.eclipse.paho.android.service.tasker.TaskerMqttConstants;
 
-/**
- * Created by jim.stys on 11/3/16.
- */
 
 public class TaskerStartStopServiceActivity extends AppCompatActivity {
 

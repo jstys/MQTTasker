@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel;
 import com.geminiapps.mqttsubscriber.tasker.ITaskerActionRunner;
 
 import org.eclipse.paho.android.service.MqttConnectionProfileRecord;
@@ -13,9 +12,6 @@ import org.eclipse.paho.android.service.MqttSubscriptionRecord;
 import org.eclipse.paho.android.service.tasker.TaskerMqttConstants;
 import org.eclipse.paho.android.service.tasker.TaskerMqttService;
 import org.eclipse.paho.android.service.tasker.TaskerPlugin;
-import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
-
-import java.util.List;
 
 public class MqttServiceSender implements ITaskerActionRunner, MqttSubscriptionRecord.ISubscriptionRecordListener, MqttConnectionProfileRecord.IConnectionProfileRecordListener{
     private static final String TAG = MqttServiceSender.class.getName();

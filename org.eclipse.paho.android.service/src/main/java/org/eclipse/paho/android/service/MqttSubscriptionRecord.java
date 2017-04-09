@@ -5,9 +5,6 @@ import com.orm.dsl.Unique;
 
 import java.util.List;
 
-/**
- * Created by jim.stys on 10/1/16.
- */
 
 public class MqttSubscriptionRecord extends SugarRecord {
     private static ISubscriptionRecordListener dbListener;

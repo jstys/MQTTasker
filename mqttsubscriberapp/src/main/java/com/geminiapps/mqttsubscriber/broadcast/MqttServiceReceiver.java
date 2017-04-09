@@ -8,18 +8,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
-import org.eclipse.paho.android.service.MqttService;
 import org.eclipse.paho.android.service.MqttServiceConstants;
 import org.eclipse.paho.android.service.Status;
 import org.eclipse.paho.android.service.tasker.TaskerMqttConstants;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.io.Serializable;
 
-/**
- * Created by jim.stys on 10/4/16.
- */
 
 public class MqttServiceReceiver extends BroadcastReceiver {
 

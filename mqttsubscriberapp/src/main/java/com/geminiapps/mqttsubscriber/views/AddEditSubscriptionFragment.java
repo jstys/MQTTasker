@@ -9,16 +9,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.SpinnerAdapter;
 
 import com.geminiapps.mqttsubscriber.R;
 import com.geminiapps.mqttsubscriber.databinding.DialogAddEditSubscriptionBinding;
 import com.geminiapps.mqttsubscriber.models.MqttSubscriptionModel;
 import com.geminiapps.mqttsubscriber.viewmodels.AddEditSubscriptionViewModel;
-
-/**
- * Created by jim.stys on 1/5/17.
- */
 
 public class AddEditSubscriptionFragment extends DialogFragment {
     public AddEditSubscriptionFragment.ISubscriptionAddedListener mSubscriptionAddedListener;
@@ -66,7 +61,7 @@ public class AddEditSubscriptionFragment extends DialogFragment {
     }
 
     public interface ISubscriptionAddedListener{
-        public void onSubscriptionAdded(MqttSubscriptionModel model);
+        void onSubscriptionAdded(MqttSubscriptionModel model);
     }
 
     public int getSelectedQos(){

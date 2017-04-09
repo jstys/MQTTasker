@@ -4,7 +4,6 @@ import android.content.Context;
 import android.databinding.BindingAdapter;
 import android.databinding.ObservableArrayList;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ListView;
@@ -21,9 +20,6 @@ import com.geminiapps.mqttsubscriber.views.AddEditProfileFragment;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by jim.stys on 10/1/16.
- */
 
 public class MainViewModel extends MqttServiceListener implements AddEditProfileFragment.IConnectionProfileAddedListener {
     private Context viewContext;
@@ -68,7 +64,7 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
         if(index >= 0 && index < this.connectionProfiles.size())
         {
             Bundle profile = new Bundle();
-            profile.putParcelable("profile", (Parcelable)connectionProfiles.get(index));
+            profile.putParcelable("profile", connectionProfiles.get(index));
             dialog.setArguments(profile);
         }
         dialog.show(fm, "add_edit_profile_fragment");

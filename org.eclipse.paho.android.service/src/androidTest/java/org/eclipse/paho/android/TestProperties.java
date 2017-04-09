@@ -7,9 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-/**
- * Created by james on 18/08/15.
- */
 public class TestProperties {
 
     //	public int waitForCompletionTime = 6000;

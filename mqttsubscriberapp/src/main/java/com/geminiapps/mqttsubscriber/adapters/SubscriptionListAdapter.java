@@ -10,19 +10,12 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 
 import com.geminiapps.mqttsubscriber.R;
-import com.geminiapps.mqttsubscriber.databinding.ListitemConnectionProfileBinding;
 import com.geminiapps.mqttsubscriber.databinding.ListitemSubscriptionBinding;
-import com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel;
 import com.geminiapps.mqttsubscriber.models.MqttSubscriptionModel;
-import com.geminiapps.mqttsubscriber.viewmodels.ConnectionProfileListItemViewModel;
 import com.geminiapps.mqttsubscriber.viewmodels.SubscriptionListItemViewModel;
 
 import java.util.ArrayList;
-import java.util.List;
 
-/**
- * Created by jim.stys on 1/5/17.
- */
 
 public class SubscriptionListAdapter extends ArrayAdapter {
     private ObservableArrayList<MqttSubscriptionModel> mSubscriptionList;

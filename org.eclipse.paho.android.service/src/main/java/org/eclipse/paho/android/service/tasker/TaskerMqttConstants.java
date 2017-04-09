@@ -1,8 +1,5 @@
 package org.eclipse.paho.android.service.tasker;
 
-/**
- * Created by jim.stys on 9/25/16.
- */
 
 public class TaskerMqttConstants {
     // Actions

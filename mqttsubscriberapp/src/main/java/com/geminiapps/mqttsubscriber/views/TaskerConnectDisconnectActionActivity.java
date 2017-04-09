@@ -13,11 +13,9 @@ import com.geminiapps.mqttsubscriber.tasker.TaskerBroadcastReceiver;
 import com.geminiapps.mqttsubscriber.viewmodels.TaskerViewModel;
 
 import org.eclipse.paho.android.service.tasker.TaskerMqttConstants;
-import org.eclipse.paho.android.service.tasker.TaskerPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class TaskerConnectDisconnectActionActivity extends AppCompatActivity {
 

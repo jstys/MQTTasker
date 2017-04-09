@@ -16,9 +16,6 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import android.util.Log;
 
-/**
- * Created by james on 19/08/15.
- */
 public class MqttV3Receiver implements MqttCallback{
 
     private final java.io.PrintStream reportStream;

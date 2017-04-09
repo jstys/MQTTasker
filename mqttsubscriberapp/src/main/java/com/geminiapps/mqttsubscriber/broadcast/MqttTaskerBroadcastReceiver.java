@@ -12,9 +12,6 @@ import org.eclipse.paho.android.service.MqttServiceConstants;
 import org.eclipse.paho.android.service.tasker.TaskerMqttConstants;
 import org.eclipse.paho.android.service.tasker.TaskerPlugin;
 
-/**
- * Created by jim.stys on 11/1/16.
- */
 
 public class MqttTaskerBroadcastReceiver extends TaskerBroadcastReceiver implements ITaskerConditionChecker {
 
@@ -54,7 +51,7 @@ public class MqttTaskerBroadcastReceiver extends TaskerBroadcastReceiver impleme
             return;
         }
 
-        String taskerProfileName = data.getString(TaskerMqttConstants.TASKER_PROFILE_NAME);
+        String taskerProfileName = data.getString(TaskerMqttConstants.TASKER_PROFILE_NAME, "");
         String profileName = data.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA);
         String taskerEvent = data.getString(TaskerMqttConstants.ACTION_EXTRA);
         String event = data.getString(MqttServiceConstants.CALLBACK_ACTION);

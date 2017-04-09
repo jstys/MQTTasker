@@ -6,9 +6,6 @@ import android.os.Bundle;
 
 import org.eclipse.paho.android.service.MqttServiceConstants;
 
-/**
- * Created by jim.stys on 9/23/16.
- */
 
 public class TaskerEventTrigger {
     private static final String EVENT_INTENT =

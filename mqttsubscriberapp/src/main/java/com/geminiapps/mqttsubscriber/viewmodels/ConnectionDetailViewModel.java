@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.geminiapps.mqttsubscriber.R;
 import com.geminiapps.mqttsubscriber.adapters.SubscriptionListAdapter;
