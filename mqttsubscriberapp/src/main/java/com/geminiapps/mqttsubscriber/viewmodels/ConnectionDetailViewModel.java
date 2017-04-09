@@ -18,15 +18,12 @@ import com.geminiapps.mqttsubscriber.broadcast.MqttServiceSender;
 import com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel;
 import com.geminiapps.mqttsubscriber.models.MqttSubscriptionModel;
 import com.geminiapps.mqttsubscriber.views.AddEditSubscriptionFragment;
+import com.geminiapps.mqttsubscriber.views.ConnectToProfileWithOptionsFragment;
 
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by jim.stys on 1/4/17.
- */
-
-public class ConnectionDetailViewModel extends MqttServiceListener implements AddEditSubscriptionFragment.ISubscriptionAddedListener{
+public class ConnectionDetailViewModel extends MqttServiceListener implements AddEditSubscriptionFragment.ISubscriptionAddedListener, ConnectToProfileWithOptionsFragment.IConnectActionListener{
     private Context mContext;
     private MqttServiceReceiver mReceiver;
     private MqttServiceSender mSender;
@@ -135,8 +132,13 @@ public class ConnectionDetailViewModel extends MqttServiceListener implements Ad
             this.mSender.disconnectFromBroker(mModel.getProfileName());
         }
         else{
-            mModel.setIsConnecting(true);
-            this.mSender.connectToBroker(mModel.getProfileName(), mModel.getAutoReconnect(), mModel.getCleanSession());
+            Bundle profile = new Bundle();
+            FragmentManager fm = ((AppCompatActivity)mContext).getSupportFragmentManager();
+            ConnectToProfileWithOptionsFragment dialog = new ConnectToProfileWithOptionsFragment();
+
+            profile.putParcelable("profile", mModel);
+            dialog.setArguments(profile);
+            dialog.show(fm, "connect_to_profile_with_options_fragment");
         }
         connectionState.set(getConnectionStateText());
         return true;
@@ -188,5 +190,15 @@ public class ConnectionDetailViewModel extends MqttServiceListener implements Ad
             mSubscriptionTopics.put(model.getTopic(), mSubscriptionList.size()-1);
             return true;
         }
+    }
+
+    @Override
+    public void onConnectToProfile(MqttConnectionProfileModel model) {
+        mModel.setAutoReconnect(model.getAutoReconnect());
+        mModel.setCleanSession(model.getCleanSession());
+        mModel.setIsConnecting(true);
+        connectionState.set(getConnectionStateText());
+        mSender.connectToBroker(mModel.getProfileName(), mModel.getAutoReconnect(), mModel.getCleanSession());
+        mModel.update();
     }
 }

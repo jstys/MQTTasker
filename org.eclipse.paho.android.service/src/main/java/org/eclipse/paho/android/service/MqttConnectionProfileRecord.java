@@ -40,11 +40,13 @@ public class MqttConnectionProfileRecord extends SugarRecord{
         this.connected = false;
     }
 
-    public long updateFromModel(String clientId, String serverURI, String username, String password){
+    public long updateFromModel(String clientId, String serverURI, String username, String password, boolean autoReconnect, boolean cleanSession){
         this.clientId = clientId;
         this.serverURI = serverURI;
         this.username = username;
         this.password = password;
+        this.autoReconnect = autoReconnect;
+        this.cleanSession = cleanSession;
         return save();
     }
 

@@ -16,10 +16,6 @@ import com.geminiapps.mqttsubscriber.databinding.DialogAddEditProfileBinding;
 import com.geminiapps.mqttsubscriber.models.MqttConnectionProfileModel;
 import com.geminiapps.mqttsubscriber.viewmodels.AddEditProfileViewModel;
 
-/**
- * Created by jim.stys on 9/29/16.
- */
-
 public class AddEditProfileFragment extends DialogFragment {
 
     public IConnectionProfileAddedListener profileAddedListener;
@@ -71,7 +67,7 @@ public class AddEditProfileFragment extends DialogFragment {
     }
 
     public interface IConnectionProfileAddedListener{
-        public void onProfileAdded(MqttConnectionProfileModel model);
+        void onProfileAdded(MqttConnectionProfileModel model);
     }
 
     public String getSelectedProtocol(){

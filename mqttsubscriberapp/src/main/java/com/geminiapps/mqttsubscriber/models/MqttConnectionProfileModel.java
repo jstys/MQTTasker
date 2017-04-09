@@ -189,7 +189,7 @@ public class MqttConnectionProfileModel extends BaseObservable implements Parcel
     public long update() {
         MqttConnectionProfileRecord dbRecord = MqttConnectionProfileRecord.findOne(this.profileName);
         if(dbRecord != null){
-            dbRecord.updateFromModel(this.clientId, this.brokerUri, this.username, this.password);
+            dbRecord.updateFromModel(this.clientId, this.brokerUri, this.username, this.password, this.autoReconnect, this.cleanSession);
         }
         return -1;
     }

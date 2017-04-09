@@ -44,10 +44,7 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
 
         this.receiver.register();
         this.sender.checkService();
-        for(MqttConnectionProfileModel model : MqttConnectionProfileModel.findAll())
-        {
-            addOrUpdateConnectionProfile(model);
-        }
+        loadProfiles();
         this.sender.queryProfilesConnected(null);
     }
 
@@ -56,7 +53,6 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
     }
 
     public void onStart(){
-
     }
 
     public ObservableArrayList<MqttConnectionProfileModel> getConnectionProfiles()
@@ -193,6 +189,13 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
         else{
             this.connectionProfiles.set(this.connectionProfileNames.get(model.getProfileName()), model);
             return false;
+        }
+    }
+
+    private void loadProfiles(){
+        for(MqttConnectionProfileModel model : MqttConnectionProfileModel.findAll())
+        {
+            addOrUpdateConnectionProfile(model);
         }
     }
 }

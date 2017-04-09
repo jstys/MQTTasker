@@ -19,6 +19,7 @@ import com.geminiapps.mqttsubscriber.viewmodels.ConnectionDetailViewModel;
 public class ConnectionDetailActivity extends AppCompatActivity {
 
     public AddEditSubscriptionFragment.ISubscriptionAddedListener mSubscriptionAddedListener;
+    public ConnectToProfileWithOptionsFragment.IConnectActionListener mConnectActionListener;
     private ConnectionDetailViewModel mViewModel;
 
     @Override
@@ -31,6 +32,7 @@ public class ConnectionDetailActivity extends AppCompatActivity {
         ActivityConnectionDetailBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_connection_detail);
         mViewModel = new ConnectionDetailViewModel(this, model);
         mSubscriptionAddedListener = mViewModel;
+        mConnectActionListener = mViewModel;
         binding.setViewModel(mViewModel);
         binding.setProfileModel(model);
         registerForContextMenu(binding.subscriptionList);
