@@ -53,6 +53,9 @@ public class TaskerConnectDisconnectActionActivity extends AppCompatActivity {
                     break;
             }
         }
+        else{
+            this.binding.connectRadioButton.setChecked(true);
+        }
         this.binding.autoReconnectCheckbox.setChecked(autoReconnect);
         this.binding.cleanSessionCheckbox.setChecked(cleanSession);
 
