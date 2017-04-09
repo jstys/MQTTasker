@@ -474,9 +474,7 @@ public class MqttConnection implements MqttCallbackExtended {
 	 * @return true if we are connected to an MQTT server
 	 */
 	public boolean isConnected() {
-		if (myClient != null)
-			return myClient.isConnected();
-		return false;
+		return mService.isOnline() && myClient != null && myClient.isConnected();
 	}
 
 	/**
@@ -818,11 +816,6 @@ public class MqttConnection implements MqttCallbackExtended {
 	public void connectionLost(Throwable why) {
 		mService.traceDebug(TAG, "connectionLost(" + why.getMessage() + ")");
 		disconnected = true;
-		try {
-			disconnect(null, null);
-		} catch (Exception e) {
-			// ignore it - we've done our best
-		}
 
 		Bundle resultBundle = new Bundle();
 		resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION,
@@ -1010,7 +1003,7 @@ public class MqttConnection implements MqttCallbackExtended {
 			return;
 		}
 
-		if (disconnected && !mConnectOptions.isCleanSession()) {
+		if (disconnected && mConnectOptions.isAutomaticReconnect()) {
 			// use the activityToke the same with action connect
 			mService.traceDebug(TAG,"Do Real Reconnect!");
 			final Bundle resultBundle = new Bundle();

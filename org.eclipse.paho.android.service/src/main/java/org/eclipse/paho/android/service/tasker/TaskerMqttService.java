@@ -170,6 +170,11 @@ public class TaskerMqttService extends MqttService {
             sendTaskerSynchronousResult(profileName, false);
             return;
         }
+        if(!isOnline()){
+            notifyActionError(profileName, TaskerMqttConstants.CONNECT_ACTION, "no network connectivity");
+            sendTaskerSynchronousResult(profileName, false);
+            return;
+        }
         if(!validateExistingProfile(profileName)){
             notifyActionError(profileName, TaskerMqttConstants.CONNECT_ACTION, "invalid profile name");
             sendTaskerSynchronousResult(profileName, false);
@@ -208,6 +213,10 @@ public class TaskerMqttService extends MqttService {
             notifyActionError(profileName, TaskerMqttConstants.DISCONNECT_ACTION, "service is not started");
             return;
         }
+        if(!isOnline()){
+            notifyActionError(profileName, TaskerMqttConstants.DISCONNECT_ACTION, "no network connectivity");
+            return;
+        }
         if(!validateExistingProfile(profileName)){
             notifyActionError(profileName, TaskerMqttConstants.DISCONNECT_ACTION, "invalid profile name");
             return;
@@ -233,6 +242,10 @@ public class TaskerMqttService extends MqttService {
             notifyActionError(profileName, TaskerMqttConstants.SUBSCRIBE_ACTION, "service is not started");
             return;
         }
+        if(!isOnline()){
+            notifyActionError(profileName, TaskerMqttConstants.SUBSCRIBE_ACTION, "no network connectivity");
+            return;
+        }
         if(!validateExistingProfile(profileName)){
             notifyActionError(profileName, TaskerMqttConstants.SUBSCRIBE_ACTION, "invalid profile name");
             return;
@@ -254,6 +267,10 @@ public class TaskerMqttService extends MqttService {
         String profileName = dataBundle.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA, null);
         if(!mServiceStarted){
             notifyActionError(profileName, TaskerMqttConstants.UNSUBSCRIBE_ACTION, "service is not started");
+            return;
+        }
+        if(!isOnline()){
+            notifyActionError(profileName, TaskerMqttConstants.UNSUBSCRIBE_ACTION, "no network connectivity");
             return;
         }
         if(!validateExistingProfile(profileName)){

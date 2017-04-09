@@ -324,20 +324,6 @@ public class MqttService extends Service implements MqttTraceHandler {
   }
 
   /**
-   * Request all clients to reconnect if appropriate
-   */
-  void reconnect() {
-	traceDebug(TAG, "Reconnect to server, client size=" + connections.size());
-	for (MqttConnection client : connections.values()) {
-			traceDebug("Reconnect Client:",
-					client.getClientId() + '/' + client.getServerURI());
-		if(this.isOnline()){
-			client.reconnect();
-		}
-	}
-  }
-
-  /**
    * Close connection from a particular client
    *
    * @param clientHandle
@@ -802,12 +788,7 @@ public class MqttService extends Service implements MqttTraceHandler {
 					.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MQTT");
 			wl.acquire();
 			traceDebug(TAG,"Reconnect for Network recovery.");
-			if (isOnline()) {
-				traceDebug(TAG,"Online,reconnect.");
-				// we have an internet connection - have another try at
-				// connecting
-				reconnect();
-			} else {
+			if (!isOnline()) {
 				notifyClientsOffline();
 			}
 
@@ -821,7 +802,7 @@ public class MqttService extends Service implements MqttTraceHandler {
 	public boolean isOnline() {
 		ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = cm.getActiveNetworkInfo();
-      if (networkInfo != null
+      if(networkInfo != null
               && networkInfo.isAvailable()
               && networkInfo.isConnected()
               && backgroundDataEnabled) {
@@ -852,12 +833,7 @@ public class MqttService extends Service implements MqttTraceHandler {
 			ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
 			traceDebug(TAG,"Reconnect since BroadcastReceiver.");
 			if (cm.getBackgroundDataSetting()) {
-				if (!backgroundDataEnabled) {
-					backgroundDataEnabled = true;
-					// we have the Internet connection - have another try at
-					// connecting
-					reconnect();
-				}
+                backgroundDataEnabled = true;
 			} else {
 				backgroundDataEnabled = false;
 				notifyClientsOffline();
