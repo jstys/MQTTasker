@@ -18,7 +18,7 @@ import com.geminiapps.mqttsubscriber.viewmodels.AddEditProfileViewModel;
 
 public class AddEditProfileFragment extends DialogFragment {
 
-    public IConnectionProfileAddedListener profileAddedListener;
+    public IConnectionProfileListener profileListener;
     private DialogAddEditProfileBinding mBinding;
 
     @Nullable
@@ -32,7 +32,8 @@ public class AddEditProfileFragment extends DialogFragment {
         mBinding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.dialog_add_edit_profile, null, false);
 
         // Create the view model
-        AddEditProfileViewModel vm = new AddEditProfileViewModel(this.getDialog(), this.profileAddedListener, this, profile);
+        int mode = (profile == null) ? AddEditProfileViewModel.ADD_MODE : AddEditProfileViewModel.EDIT_MODE;
+        AddEditProfileViewModel vm = new AddEditProfileViewModel(this.getDialog(), this.profileListener, this, profile, mode);
         mBinding.setViewModel(vm);
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(context, R.array.protocol_values_array, android.R.layout.simple_spinner_item);
@@ -63,11 +64,12 @@ public class AddEditProfileFragment extends DialogFragment {
         super.onAttach(context);
 
         MainActivity activity = (MainActivity)context;
-        this.profileAddedListener = activity.profileAddedListener;
+        this.profileListener = activity.profileListener;
     }
 
-    public interface IConnectionProfileAddedListener{
-        void onProfileAdded(MqttConnectionProfileModel model);
+    public interface IConnectionProfileListener{
+        boolean onProfileAdded(MqttConnectionProfileModel model);
+        boolean onProfileUpdated(MqttConnectionProfileModel model);
     }
 
     public String getSelectedProtocol(){

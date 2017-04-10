@@ -11,21 +11,25 @@ import com.geminiapps.mqttsubscriber.views.AddEditProfileFragment;
 public class AddEditProfileViewModel {
     private static final String TCP_PROTOCOL = "TCP";
     private static final String WS_PROTOCOL = "Websockets";
+    public static final int ADD_MODE = 0;
+    public static final int EDIT_MODE = 1;
 
     private Dialog dialog;
-    private AddEditProfileFragment.IConnectionProfileAddedListener profileAddedListener;
+    private AddEditProfileFragment.IConnectionProfileListener profileListener;
     private AddEditProfileFragment mView;
+    private int mMode;
 
     public MqttConnectionProfileModel mModel;
     public final ObservableField<String> brokerHost = new ObservableField<>();
     public final ObservableField<String> brokerPort = new ObservableField<>();
 
-    public AddEditProfileViewModel(Dialog dialog, AddEditProfileFragment.IConnectionProfileAddedListener profileAddedListener, AddEditProfileFragment view, MqttConnectionProfileModel model)
+    public AddEditProfileViewModel(Dialog dialog, AddEditProfileFragment.IConnectionProfileListener profileListener, AddEditProfileFragment view, MqttConnectionProfileModel model, int mode)
     {
         this.dialog = dialog;
-        this.profileAddedListener = profileAddedListener;
+        this.profileListener = profileListener;
         mView = view;
         mModel = (model == null) ? new MqttConnectionProfileModel() : model;
+        mMode = mode;
         if(model != null){
             Uri brokerUri = Uri.parse(mModel.getBrokerUri());
             brokerHost.set(brokerUri.getHost());
@@ -38,7 +42,15 @@ public class AddEditProfileViewModel {
             StringBuilder errorStringBuilder = new StringBuilder();
             if(validateProfile(errorStringBuilder)) {
                 mModel.setBrokerUri(buildBrokerURI());
-                this.profileAddedListener.onProfileAdded(mModel);
+                if(mMode == ADD_MODE) {
+                    if(!this.profileListener.onProfileAdded(mModel)){
+                        Toast.makeText(mView.getContext(), "Profile name " + mModel.getProfileName() + " is already taken", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                }
+                else{
+                    this.profileListener.onProfileUpdated(mModel);
+                }
                 this.dialog.dismiss();
             }
             else{

@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class MainViewModel extends MqttServiceListener implements AddEditProfileFragment.IConnectionProfileAddedListener {
+public class MainViewModel extends MqttServiceListener implements AddEditProfileFragment.IConnectionProfileListener {
     private Context viewContext;
     private MqttServiceReceiver receiver;
     private MqttServiceSender sender;
@@ -91,9 +91,25 @@ public class MainViewModel extends MqttServiceListener implements AddEditProfile
     }
 
     @Override
-    public void onProfileAdded(MqttConnectionProfileModel model) {
-        boolean newProfile = addOrUpdateConnectionProfile(model);
-        long id = newProfile ? model.save() : model.update();
+    public boolean onProfileAdded(MqttConnectionProfileModel model) {
+        if(connectionProfileNames.containsKey(model.getProfileName())){
+            return false;
+        }
+
+        addOrUpdateConnectionProfile(model);
+        model.save();
+        return true;
+    }
+
+    @Override
+    public boolean onProfileUpdated(MqttConnectionProfileModel model) {
+        if(!connectionProfileNames.containsKey(model.getProfileName())){
+            return false;
+        }
+
+        addOrUpdateConnectionProfile(model);
+        model.update();
+        return true;
     }
 
     @Override

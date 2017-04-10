@@ -22,7 +22,7 @@ import com.geminiapps.mqttsubscriber.views.ConnectToProfileWithOptionsFragment;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ConnectionDetailViewModel extends MqttServiceListener implements AddEditSubscriptionFragment.ISubscriptionAddedListener, ConnectToProfileWithOptionsFragment.IConnectActionListener{
+public class ConnectionDetailViewModel extends MqttServiceListener implements AddEditSubscriptionFragment.ISubscriptionListener, ConnectToProfileWithOptionsFragment.IConnectActionListener{
     private Context mContext;
     private MqttServiceReceiver mReceiver;
     private MqttServiceSender mSender;
@@ -173,10 +173,25 @@ public class ConnectionDetailViewModel extends MqttServiceListener implements Ad
     }
 
     @Override
-    public void onSubscriptionAdded(MqttSubscriptionModel model) {
-        boolean newTopic = addOrUpdateSubscription(model);
+    public boolean onSubscriptionAdded(MqttSubscriptionModel model) {
+        if(mSubscriptionTopics.containsKey(model.getTopic())){
+            return false;
+        }
 
-        long id = newTopic ? model.save() : model.update();
+        addOrUpdateSubscription(model);
+        model.save();
+        return true;
+    }
+
+    @Override
+    public boolean onSubscriptionUpdated(MqttSubscriptionModel model) {
+        if(!mSubscriptionTopics.containsKey(model.getTopic())){
+            return false;
+        }
+
+        addOrUpdateSubscription(model);
+        model.update();
+        return true;
     }
 
     private boolean addOrUpdateSubscription(MqttSubscriptionModel model){

@@ -9,13 +9,18 @@ import com.geminiapps.mqttsubscriber.views.AddEditSubscriptionFragment;
 public class AddEditSubscriptionViewModel {
     private Dialog dialog;
     private AddEditSubscriptionFragment mView;
-    private AddEditSubscriptionFragment.ISubscriptionAddedListener subscriptionAddedListener;
+    private AddEditSubscriptionFragment.ISubscriptionListener mSubscriptionListener;
+    private int mMode;
 
-    public AddEditSubscriptionViewModel(Dialog dialog, AddEditSubscriptionFragment.ISubscriptionAddedListener subscriptionAddedListener, AddEditSubscriptionFragment view)
+    public static final int ADD_MODE = 0;
+    public static final int EDIT_MODE = 1;
+
+    public AddEditSubscriptionViewModel(Dialog dialog, AddEditSubscriptionFragment.ISubscriptionListener subscriptionListener, AddEditSubscriptionFragment view, int mode)
     {
         this.dialog = dialog;
-        this.subscriptionAddedListener = subscriptionAddedListener;
+        this.mSubscriptionListener = subscriptionListener;
         mView = view;
+        mMode = mode;
     }
 
     public void saveSubscription(MqttSubscriptionModel model) {
@@ -23,7 +28,15 @@ public class AddEditSubscriptionViewModel {
         if (model != null){
             if(validateMQTTTopic(model.getTopic(), errorStringBuilder)){
                 model.setQos(mView.getSelectedQos());
-                this.subscriptionAddedListener.onSubscriptionAdded(model);
+                if(mMode == ADD_MODE) {
+                    if(!this.mSubscriptionListener.onSubscriptionAdded(model)){
+                        Toast.makeText(mView.getContext(), "Subscription topic " + model.getTopic() + " is already in use for this profile", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                }
+                else{
+                    this.mSubscriptionListener.onSubscriptionUpdated(model);
+                }
                 this.dialog.dismiss();
             }
             else{

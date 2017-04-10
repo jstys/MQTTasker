@@ -1,15 +1,12 @@
 package org.eclipse.paho.android.service;
 
 import com.orm.SugarRecord;
-import com.orm.dsl.Unique;
 
 import java.util.List;
-
 
 public class MqttSubscriptionRecord extends SugarRecord {
     private static ISubscriptionRecordListener dbListener;
 
-    @Unique
     public String topic;
     public String profileName;
     public int qos;

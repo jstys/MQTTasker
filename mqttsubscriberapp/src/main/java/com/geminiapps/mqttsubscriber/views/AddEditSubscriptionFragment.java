@@ -15,8 +15,10 @@ import com.geminiapps.mqttsubscriber.databinding.DialogAddEditSubscriptionBindin
 import com.geminiapps.mqttsubscriber.models.MqttSubscriptionModel;
 import com.geminiapps.mqttsubscriber.viewmodels.AddEditSubscriptionViewModel;
 
+import org.eclipse.paho.android.service.MqttSubscriptionRecord;
+
 public class AddEditSubscriptionFragment extends DialogFragment {
-    public AddEditSubscriptionFragment.ISubscriptionAddedListener mSubscriptionAddedListener;
+    public AddEditSubscriptionFragment.ISubscriptionListener mSubscriptionListener;
     private DialogAddEditSubscriptionBinding mBinding;
 
     @Nullable
@@ -31,7 +33,8 @@ public class AddEditSubscriptionFragment extends DialogFragment {
         mBinding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.dialog_add_edit_subscription, null, false);
 
         // Create the view model
-        AddEditSubscriptionViewModel vm = new AddEditSubscriptionViewModel(this.getDialog(), mSubscriptionAddedListener, this);
+        int mode = (subscription == null) ? AddEditSubscriptionViewModel.ADD_MODE : AddEditSubscriptionViewModel.EDIT_MODE;
+        AddEditSubscriptionViewModel vm = new AddEditSubscriptionViewModel(this.getDialog(), mSubscriptionListener, this, mode);
         mBinding.setViewModel(vm);
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(context, R.array.qos_values_array, android.R.layout.simple_spinner_item);
@@ -57,11 +60,12 @@ public class AddEditSubscriptionFragment extends DialogFragment {
         super.onAttach(context);
 
         ConnectionDetailActivity activity = (ConnectionDetailActivity)context;
-        mSubscriptionAddedListener = activity.mSubscriptionAddedListener;
+        mSubscriptionListener = activity.mSubscriptionListener;
     }
 
-    public interface ISubscriptionAddedListener{
-        void onSubscriptionAdded(MqttSubscriptionModel model);
+    public interface ISubscriptionListener{
+        boolean onSubscriptionAdded(MqttSubscriptionModel model);
+        boolean onSubscriptionUpdated(MqttSubscriptionModel model);
     }
 
     public int getSelectedQos(){
