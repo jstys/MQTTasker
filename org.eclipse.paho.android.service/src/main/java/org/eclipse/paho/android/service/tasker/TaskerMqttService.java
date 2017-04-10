@@ -117,7 +117,7 @@ public class TaskerMqttService extends MqttService {
         if(!mServiceStarted) {
             Log.d(TAG, "Starting the TaskerMqttService");
 
-            resetAllClientsConnectedState();
+            disconnectAllClients();
             startForeground(SERVICE_NOTIF_ID,
                     getServiceNotification());
 
@@ -467,9 +467,9 @@ public class TaskerMqttService extends MqttService {
                 onConnectCallback(profileName, success);
                 break;
             case MqttServiceConstants.ON_CONNECTION_LOST_ACTION:
+                onDisconnectCallback(profileName, true);
             case TaskerMqttConstants.DISCONNECT_ACTION:
-                updateClientState(profileName, false);
-                sendTaskerConnectionEvent(profileName, false);
+                onDisconnectCallback(profileName, success);
                 break;
             case TaskerMqttConstants.STOP_SERVICE_ACTION:
                 onStopService(success);
@@ -490,16 +490,16 @@ public class TaskerMqttService extends MqttService {
         }
     }
 
-    private void onStopService(boolean success){
-        if(success) {
-            resetAllClientsConnectedState();
+    private void onDisconnectCallback(String profileName, boolean success){
+        if(success && connections.containsKey(profileName)) {
+            updateClientState(profileName, false);
+            sendTaskerConnectionEvent(profileName, false);
         }
     }
 
-    private void resetAllClientsConnectedState(){
-        Iterator<MqttConnectionProfileRecord> iter = MqttSubscriptionRecord.findAll(MqttConnectionProfileRecord.class);
-        while(iter.hasNext()){
-            updateClientState(iter.next().profileName, false);
+    private void onStopService(boolean success){
+        if(success) {
+            disconnectAllClients();
         }
     }
 
@@ -549,6 +549,12 @@ public class TaskerMqttService extends MqttService {
                             value.toString(), value.getClass().getName()));
                 }
             }
+        }
+    }
+
+    private void disconnectAllClients(){
+        for(MqttConnection connection : connections.values()){
+            connection.disconnect(null, null);
         }
     }
 
