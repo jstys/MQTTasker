@@ -11,7 +11,7 @@ android {
     defaultConfig {
         applicationId "com.geminiapps.mqttsubscriber"
         minSdkVersion 12
-        targetSdkVersion 25
+        targetSdkVersion rootProject.ext.compileSdkVersion
         versionCode 1
         versionName "1.0"
 
@@ -27,9 +27,6 @@ android {
     }
 }
 
-repositories {
-    maven { url rootProject.ext.mavenUrl }
-}
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
@@ -37,9 +34,9 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile project(':org.eclipse.paho.android.service')
-    compile 'com.android.support:appcompat-v7:25.1.1'
-    compile 'com.android.support:design:25.1.1'
-    compile 'com.android.support:recyclerview-v7:25.1.1'
-    compile 'com.android.support:support-v4:25.1.1'
+    compile "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
+    compile "com.android.support:design:${rootProject.ext.supportLibVersion}"
+    compile "com.android.support:recyclerview-v7:${rootProject.ext.supportLibVersion}"
+    compile "com.android.support:support-v4:${rootProject.ext.supportLibVersion}"
     testCompile 'junit:junit:4.12'
 }
