@@ -84,8 +84,13 @@ public class TaskerMqttService extends MqttService {
                 ProcessStopServiceAction();
                 break;
             case TaskerMqttConstants.QUERY_SERVICE_RUNNING_ACTION:
-                ProcessQueryServiceAction();
-                break;
+                boolean running = ProcessQueryServiceAction();
+                if(running){
+                    return START_STICKY;
+                }
+                else{
+                    return START_NOT_STICKY;
+                }
             case TaskerMqttConstants.QUERY_PROFILE_CONNECTED_ACTION:
                 ProcessQueryProfileConnectedAction(data);
                 break;
@@ -283,16 +288,18 @@ public class TaskerMqttService extends MqttService {
         unsubscribe(profileName, topicFilter, null, null);
     }
 
-    private void ProcessQueryServiceAction(){
+    private boolean ProcessQueryServiceAction(){
         Log.d(TAG, "Query Service Action received");
 
         Bundle resultBundle = new Bundle();
         resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION, TaskerMqttConstants.QUERY_SERVICE_RUNNING_ACTION);
         if(this.mServiceStarted) {
             this.callbackToActivity(null, Status.OK, resultBundle);
+            return true;
         }
         else{
             this.callbackToActivity(null, Status.ERROR, resultBundle);
+            return false;
         }
     }
 
