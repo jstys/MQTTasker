@@ -17,3 +17,7 @@ This app is divided into 2 parts: the first is a standalone app that will be pre
 ### Event Plugins
 * Connection Established / Lost to a specific broker
 * New message for a subscribed topic
+
+## Roadmap
+* Publish a message to a connected broker profile
+* Support for SSL/TLS and certificates
