@@ -92,6 +92,10 @@ public class MqttServiceReceiver extends BroadcastReceiver {
                         case TaskerMqttConstants.QUERY_PROFILE_CONNECTED_ACTION:
                             this.listener.onQueryProfileConnectedResponse(resultBundle);
                             break;
+                        case MqttServiceConstants.MESSAGE_DELIVERED_ACTION:
+                        case MqttServiceConstants.SEND_ACTION:
+                            // Don't do anything with ACKs for publishes from tasker
+                            break;
                         default:
                             Toast.makeText(context, "Received broadcast with unsupported action = " + action, Toast.LENGTH_SHORT).show();
                             break;

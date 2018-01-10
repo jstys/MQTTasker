@@ -86,6 +86,7 @@ public class TaskerViewModel {
 
             String blurb = buildTaskerBlurb(new String[]{"Publish",
                     "Profile = " + profileName,
+                    "Topic = " + topic,
                     "Message = " + message,
                     "QoS = " + qos,
                     "Retained = " + retained});
