@@ -7,6 +7,7 @@ import android.os.Bundle;
 import com.geminiapps.mqttsubscriber.views.TaskerConnectDisconnectActionActivity;
 import com.geminiapps.mqttsubscriber.views.TaskerConnectionEventActivity;
 import com.geminiapps.mqttsubscriber.views.TaskerMessageEventActivity;
+import com.geminiapps.mqttsubscriber.views.TaskerPublishActionActivity;
 import com.geminiapps.mqttsubscriber.views.TaskerStartStopServiceActivity;
 
 import org.eclipse.paho.android.service.MqttServiceConstants;
@@ -46,6 +47,44 @@ public class TaskerViewModel {
 
             String blurb = buildTaskerBlurb(new String[]{action,
                                                          "Profile = " + profileName});
+            resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BUNDLE", resultBundle);
+            resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BLURB", blurb);
+            this.context.setResult(RESULT_OK, resultIntent);
+        }
+    }
+
+    public void savePublishActionSettings(){
+        Intent resultIntent = new Intent();
+        Bundle resultBundle = new Bundle();
+        TaskerPublishActionActivity activity = ((TaskerPublishActionActivity)this.context);
+        String profileName = activity.getSelectedProfileName();
+        String message = activity.getMessage();
+        int qos = activity.getQos();
+        boolean retained = activity.isRetained();
+        String topic = activity.getTopic();
+
+
+        if(profileName != null && !message.isEmpty() && !topic.isEmpty()) {
+            String action = TaskerMqttConstants.PUBLISH_ACTION;
+
+            // TODO: leaving as fire and forget, letting QOS handle it
+//            if (TaskerPlugin.Setting.hostSupportsSynchronousExecution( this.context.getIntent().getExtras())) {
+//                //TODO: figure out what the connect timeout should be
+//                TaskerPlugin.Setting.requestTimeoutMS(resultIntent, 10000);
+//            }
+
+            resultBundle.putString(TaskerMqttConstants.ACTION_EXTRA, action);
+            resultBundle.putString(TaskerMqttConstants.PROFILE_NAME_EXTRA, profileName);
+            resultBundle.putString(TaskerMqttConstants.MESSAGE_EXTRA, message);
+            resultBundle.putInt(TaskerMqttConstants.QOS_EXTRA, qos);
+            resultBundle.putBoolean(TaskerMqttConstants.RETAINED_EXTRA, retained);
+            resultBundle.putString(TaskerMqttConstants.TOPIC_EXTRA, topic);
+
+            String blurb = buildTaskerBlurb(new String[]{"Publish",
+                    "Profile = " + profileName,
+                    "Message = " + message,
+                    "QoS = " + qos,
+                    "Retained = " + retained});
             resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BUNDLE", resultBundle);
             resultIntent.putExtra("com.twofortyfouram.locale.intent.extra.BLURB", blurb);
             this.context.setResult(RESULT_OK, resultIntent);

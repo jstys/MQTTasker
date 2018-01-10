@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <variable name="viewModel" type="com.geminiapps.mqttsubscriber.viewmodels.TaskerViewModel"/>
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin">
+
+        <TextView
+            android:text="Profile Name:"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/profile_spinner_text"
+            android:layout_margin="10dp"
+            android:textSize="20sp" />
+
+        <Spinner
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:id="@+id/profile_spinner"
+            android:gravity="center_vertical"
+            android:layout_below="@+id/profile_spinner_text"
+            android:layout_alignLeft="@+id/profile_spinner_text"
+            android:layout_alignStart="@+id/profile_spinner_text" />
+
+        <TextView
+            android:text="Topic:"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/topic_label"
+            android:layout_below="@+id/profile_spinner"
+            android:layout_margin="10dp"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/topic_edittext"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/profile_spinner_text"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignStart="@+id/profile_spinner_text"
+            android:layout_below="@+id/topic_label"
+            android:ems="10"
+            android:inputType="textPersonName"
+            android:hint="Topic" />
+
+        <TextView
+            android:text="Message:"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/message_label"
+            android:layout_below="@+id/topic_edittext"
+            android:layout_margin="10dp"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/message_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/message_label"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignStart="@+id/message_label"
+            android:layout_below="@+id/message_label"
+            android:ems="10"
+            android:inputType="textPersonName"
+            android:hint="Message Content" />
+
+        <TextView
+            android:text="QoS:"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/qos_spinner_text"
+            android:layout_below="@+id/message_text"
+            android:layout_margin="10dp"
+            android:textSize="20sp" />
+
+        <Spinner
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:id="@+id/qos_spinner"
+            android:gravity="center_vertical"
+            android:layout_below="@+id/qos_spinner_text"
+            android:layout_alignLeft="@+id/profile_spinner_text"
+            android:layout_alignStart="@+id/profile_spinner_text" />
+
+        <CheckBox
+            android:text="Retained"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="11dp"
+            android:textSize="20sp"
+            android:id="@+id/retained_checkbox"
+            android:layout_below="@+id/qos_spinner"
+            android:layout_alignLeft="@+id/qos_spinner_text"
+            android:layout_alignStart="@+id/qos_spinner_text"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true" />
+
+    </RelativeLayout>
+</layout>

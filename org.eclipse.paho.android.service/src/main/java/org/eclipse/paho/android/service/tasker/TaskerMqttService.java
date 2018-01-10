@@ -15,10 +15,12 @@ import org.eclipse.paho.android.service.MqttService;
 import org.eclipse.paho.android.service.MqttServiceConstants;
 import org.eclipse.paho.android.service.MqttSubscriptionRecord;
 import org.eclipse.paho.android.service.Status;
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -100,6 +102,9 @@ public class TaskerMqttService extends MqttService {
                 break;
             case TaskerMqttConstants.SUBSCRIPTION_DELETED_ACTION:
                 ProcessSubscriptionDeletedAction(data);
+                break;
+            case TaskerMqttConstants.PUBLISH_ACTION:
+                ProcessPublishAction(data);
                 break;
             default:
                 break;
@@ -411,6 +416,38 @@ public class TaskerMqttService extends MqttService {
         MqttSubscriptionRecord.deleteAll(MqttSubscriptionRecord.class, "profile_name = ?", profileName);
     }
 
+    private void ProcessPublishAction(Bundle dataBundle){
+        if(!validateBundle(dataBundle, Arrays.asList(TaskerMqttConstants.PROFILE_NAME_EXTRA,
+                                                     TaskerMqttConstants.MESSAGE_EXTRA,
+                                                     TaskerMqttConstants.TOPIC_EXTRA,
+                                                     TaskerMqttConstants.RETAINED_EXTRA,
+                                                     TaskerMqttConstants.QOS_EXTRA))){
+            Log.w(TAG, "invalid bundle for publish action");
+            return;
+        }
+
+        String profileName = dataBundle.getString(TaskerMqttConstants.PROFILE_NAME_EXTRA);
+        if(!validateExistingProfile(profileName)){
+            return;
+        }
+
+        String message = dataBundle.getString(TaskerMqttConstants.MESSAGE_EXTRA);
+        String topic = dataBundle.getString(TaskerMqttConstants.TOPIC_EXTRA);
+        int qos = dataBundle.getInt(TaskerMqttConstants.QOS_EXTRA);
+        boolean retained = dataBundle.getBoolean(TaskerMqttConstants.RETAINED_EXTRA);
+        MqttMessage mqttMessage = new MqttMessage();
+        mqttMessage.setPayload(message.getBytes());
+        mqttMessage.setQos(qos);
+        mqttMessage.setRetained(retained);
+
+        try{
+            publish(profileName, topic, mqttMessage, null, null);
+        }
+        catch(MqttPersistenceException e){
+            Log.e(TAG, "Unable to persist MQTT publish (" + e + ")");
+        }
+    }
+
     @Override
     public void disconnect(String clientHandle, String invocationContext, String activityToken) {
         if(mServiceStarted) {
@@ -424,6 +461,15 @@ public class TaskerMqttService extends MqttService {
         if(mServiceStarted) {
             super.unsubscribe(clientHandle, topic, invocationContext, activityToken);
         }
+    }
+
+    @Override
+    public IMqttDeliveryToken publish(String clientHandle, String topic, MqttMessage message, String invocationContext, String activityToken) throws MqttPersistenceException {
+        if(mServiceStarted){
+            MqttConnection client = getConnection(clientHandle);
+            client.publish(topic, message, invocationContext, activityToken);
+        }
+        return null;
     }
 
     public void subscribe(String profileName, String topicFilter, int qos, String invocationContext, String activityToken){
@@ -476,6 +522,9 @@ public class TaskerMqttService extends MqttService {
             case TaskerMqttConstants.STOP_SERVICE_ACTION:
                 onStopService(success);
                 break;
+            case MqttServiceConstants.SEND_ACTION:
+                onPublishCallback(profileName, success);
+                break;
         }
     }
 
@@ -503,6 +552,10 @@ public class TaskerMqttService extends MqttService {
         if(success) {
             disconnectAllClients();
         }
+    }
+
+    private void onPublishCallback(String profileName, boolean success){
+        // TODO: publishing will be fire and forget from tasker, let QOS handle failures
     }
 
     private Notification getServiceNotification(){
