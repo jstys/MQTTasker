@@ -80,6 +80,10 @@ public class TaskerViewModel {
             resultBundle.putBoolean(TaskerMqttConstants.RETAINED_EXTRA, retained);
             resultBundle.putString(TaskerMqttConstants.TOPIC_EXTRA, topic);
 
+            if ( TaskerPlugin.Setting.hostSupportsOnFireVariableReplacement(activity)) {
+                TaskerPlugin.Setting.setVariableReplaceKeys(resultBundle, new String[]{TaskerMqttConstants.TOPIC_EXTRA, TaskerMqttConstants.MESSAGE_EXTRA});
+            }
+
             String blurb = buildTaskerBlurb(new String[]{"Publish",
                     "Profile = " + profileName,
                     "Message = " + message,
